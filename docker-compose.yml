@@ -1,0 +1,69 @@
+version: '2.4'
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.0.9
+    container_name: zookeeper-terminal-helper
+    healthcheck:
+      test: "[[ $$(echo srvr | nc localhost 2181 | grep -oG 'Mode: standalone') = \"Mode: standalone\" ]]"
+      interval: 10s
+      timeout: 1s
+      retries: 30
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    network_mode: host
+
+  kafka1:
+    image: confluentinc/cp-kafka:7.0.9
+    container_name: kafka1-terminal-helper
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    healthcheck:
+      test: "test $$( /usr/bin/zookeeper-shell zookeeper:2181 get /brokers/ids/1 | grep { ) != ''"
+      interval: 3s
+      timeout: 2s
+      retries: 300
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'localhost:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    ports:
+      - "9092:9092"
+    network_mode: host
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    container_name: kafdrop-terminal-helper
+    restart: "no"
+    ports:
+      - "9000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: "localhost:9092"
+    depends_on:
+      - "kafka1"
+    network_mode: host
+
+
+  candle1:
+    container_name: candle-minute
+    build:
+      context: images/get_candles
+      dockerfile: ./Dockerfile
+    environment:
+      INTERVAL: "${INTERVAL_ONE_MIN}"
+      TOKEN: "${TOKEN}"
+    volumes:
+      - ./need_tickers.txt:/need_tickers.txt
+      - ./not_need_tickers.txt:/not_need_tickers.txt
+    depends_on:
+      - "kafka1"
+    network_mode: host
+
