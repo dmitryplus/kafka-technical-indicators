@@ -52,12 +52,13 @@ services:
     network_mode: host
 
 # переопределяемый контейнер с настройками
-  common-env:
+  common-env-container:
     build:
       context: images/config
       dockerfile: ./Dockerfile
     environment:
       KAFKA_BROKERCONNECT: "${KAFKA_CONNECT}"
+      KAFKA_CONNECT: "${KAFKA_CONNECT}"
       TOKEN: "${TOKEN}"
       TOPIC_CONFIG: "${TOPIC_CONFIG}"
     depends_on:
@@ -71,27 +72,18 @@ services:
 #    ports:
 #      - "9000:9000"
     extends:
-      service: common-env
-#    depends_on:
-#      - "kafka1"
-#    network_mode: host
+      service: common-env-container
 
 
-  config:
+
+  config-app:
     container_name: config-container
     build:
       context: images/config
       dockerfile: ./Dockerfile
-#    environment:
-#      TOKEN: "${TOKEN}"
-#      KAFKA_BROKERCONNECT: "localhost:9092"
     extends:
-      service: common-env
+      service: common-env-container
     volumes:
-      - type: bind
-        source: ./images/config/src
-        target: /
-        read_only: true
       - type: bind
         source: ./need_tickers.txt
         target: /need_tickers.txt
@@ -100,9 +92,6 @@ services:
         source: ./not_need_tickers.txt
         target: /not_need_tickers.txt
         read_only: true
-#    depends_on:
-#      - "kafka1"
-#    network_mode: host
 
 
   candle1:
@@ -111,13 +100,10 @@ services:
       context: images/get_candles
       dockerfile: ./Dockerfile
     extends:
-      service: common-env
+      service: common-env-container
     environment:
       INTERVAL: "${INTERVAL_ONE_MIN}"
     volumes:
       - ./need_tickers.txt:/need_tickers.txt
       - ./not_need_tickers.txt:/not_need_tickers.txt
-#    depends_on:
-#      - "kafka1"
-#    network_mode: host
 
