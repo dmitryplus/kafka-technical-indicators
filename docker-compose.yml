@@ -46,8 +46,8 @@ services:
       - "kafka1"
     command: bash -c 'echo "Waiting for Kafka to be ready..." &&
           cub kafka-ready -b ${KAFKA_CONNECT} 1 30 &&
-          kafka-topics --create --topic ${TOPIC_CONFIG} --partitions 1 --replication-factor 1 --config cleanup.policy=compact --config delete.retention.ms=10 --config min.cleanable.dirty.ratio=0.1 --config min.compaction.lag.ms=10 --config max.compaction.lag.ms=100 --if-not-exists --bootstrap-server ${KAFKA_CONNECT}
-          '
+          kafka-topics --create --topic ${TOPIC_CONFIG} --partitions 1 --replication-factor 1 --config cleanup.policy=compact --config delete.retention.ms=10 --config min.cleanable.dirty.ratio=0.1 --config min.compaction.lag.ms=10 --config max.compaction.lag.ms=100 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
+          exit 0'
 
     network_mode: host
 
