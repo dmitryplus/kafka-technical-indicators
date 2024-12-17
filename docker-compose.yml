@@ -11,8 +11,8 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - "2181:2181"
+#    ports:
+#      - "2181:2181"
     network_mode: host
 
   kafka1:
@@ -21,35 +21,88 @@ services:
     depends_on:
       zookeeper:
         condition: service_healthy
-    healthcheck:
-      test: "test $$( /usr/bin/zookeeper-shell zookeeper:2181 get /brokers/ids/1 | grep { ) != ''"
-      interval: 3s
-      timeout: 2s
-      retries: 300
+#    healthcheck:
+#      test: "test $$( /usr/bin/zookeeper-shell zookeeper:2181 get /brokers/ids/1 | grep { ) != ''"
+#      interval: 3s
+#      timeout: 2s
+#      retries: 300
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'localhost:2181'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://${KAFKA_CONNECT}
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-    ports:
-      - "9092:9092"
+#    ports:
+#      - "9092:9092"
+    network_mode: host
+
+  kafka-init-topics:
+    image: confluentinc/cp-kafka:7.0.9
+    container_name: kafka-init-topics-terminal-helper
+    depends_on:
+      - "kafka1"
+    command: bash -c 'echo "Waiting for Kafka to be ready..." &&
+          cub kafka-ready -b ${KAFKA_CONNECT} 1 30 &&
+          kafka-topics --create --topic ${TOPIC_CONFIG} --partitions 1 --replication-factor 1 --config cleanup.policy=compact --config delete.retention.ms=10 --config min.cleanable.dirty.ratio=0.1 --config min.compaction.lag.ms=10 --config max.compaction.lag.ms=100 --if-not-exists --bootstrap-server ${KAFKA_CONNECT}
+          '
+
+    network_mode: host
+
+# переопределяемый контейнер с настройками
+  common-env:
+    build:
+      context: images/config
+      dockerfile: ./Dockerfile
+    environment:
+      KAFKA_BROKERCONNECT: "${KAFKA_CONNECT}"
+      TOKEN: "${TOKEN}"
+      TOPIC_CONFIG: "${TOPIC_CONFIG}"
+    depends_on:
+      - "kafka1"
     network_mode: host
 
   kafdrop:
     image: obsidiandynamics/kafdrop
     container_name: kafdrop-terminal-helper
     restart: "no"
-    ports:
-      - "9000:9000"
-    environment:
-      KAFKA_BROKERCONNECT: "localhost:9092"
-    depends_on:
-      - "kafka1"
-    network_mode: host
+#    ports:
+#      - "9000:9000"
+    extends:
+      service: common-env
+#    depends_on:
+#      - "kafka1"
+#    network_mode: host
+
+
+  config:
+    container_name: config-container
+    build:
+      context: images/config
+      dockerfile: ./Dockerfile
+#    environment:
+#      TOKEN: "${TOKEN}"
+#      KAFKA_BROKERCONNECT: "localhost:9092"
+    extends:
+      service: common-env
+    volumes:
+      - type: bind
+        source: ./images/config/src
+        target: /
+        read_only: true
+      - type: bind
+        source: ./need_tickers.txt
+        target: /need_tickers.txt
+        read_only: true
+      - type: bind
+        source: ./not_need_tickers.txt
+        target: /not_need_tickers.txt
+        read_only: true
+#    depends_on:
+#      - "kafka1"
+#    network_mode: host
 
 
   candle1:
@@ -57,13 +110,14 @@ services:
     build:
       context: images/get_candles
       dockerfile: ./Dockerfile
+    extends:
+      service: common-env
     environment:
       INTERVAL: "${INTERVAL_ONE_MIN}"
-      TOKEN: "${TOKEN}"
     volumes:
       - ./need_tickers.txt:/need_tickers.txt
       - ./not_need_tickers.txt:/not_need_tickers.txt
-    depends_on:
-      - "kafka1"
-    network_mode: host
+#    depends_on:
+#      - "kafka1"
+#    network_mode: host
 
