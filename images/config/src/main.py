@@ -1,11 +1,12 @@
 import os
 import logging
+
 from tinkoff.invest import (Client)
 
 from instruments_helper import get_instruments
-from infractructure.results import send_results
+from src.infractructure.kafka_service import KafkaService
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.ERROR)
 
 token = os.environ.get('TOKEN', None)
 
@@ -20,7 +21,13 @@ def main():
 
         print(figi)
 
-        send_results(figi)
+        kafka_service = KafkaService()
+
+        kafka_service.send(
+            KafkaService.get_config_topic_name(),
+            KafkaService.get_instrument_key(),
+            figi
+        )
 
 
 if __name__ == '__main__':
