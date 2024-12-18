@@ -71,6 +71,10 @@ services:
       - .env
     volumes:
       - type: bind
+        source: ./src/infractructure
+        target: /infractructure
+        read_only: true
+      - type: bind
         source: ./need_tickers.txt
         target: /need_tickers.txt
         read_only: true

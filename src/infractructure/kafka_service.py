@@ -4,8 +4,7 @@ import os
 from kafka import KafkaAdminClient, KafkaProducer
 from time import sleep
 
-from src.infractructure.singletone import SingletonMeta
-
+from .SingletonMeta import SingletonMeta
 
 class KafkaService(metaclass=SingletonMeta):
     '''

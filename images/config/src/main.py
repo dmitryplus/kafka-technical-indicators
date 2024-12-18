@@ -4,7 +4,7 @@ import logging
 from tinkoff.invest import (Client)
 
 from instruments_helper import get_instruments
-from src.infractructure.kafka_service import KafkaService
+from infractructure.kafka_service import KafkaService
 
 logging.basicConfig(level=logging.ERROR)
 
