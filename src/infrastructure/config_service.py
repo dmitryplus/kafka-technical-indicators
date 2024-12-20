@@ -7,6 +7,7 @@ from .kafka_service import KafkaService
 
 from .SingletonMeta import SingletonMeta
 
+
 class ConfigService(metaclass=SingletonMeta):
     '''
     Класс для работы с конфигурацией
@@ -53,3 +54,7 @@ class ConfigService(metaclass=SingletonMeta):
 
         for message in consumer:
             cls.__configs[message.key] = message.value
+
+    @classmethod
+    def get_instruments(cls) -> dict[str, str]:
+        return cls.__configs[cls.__instrument_key]
