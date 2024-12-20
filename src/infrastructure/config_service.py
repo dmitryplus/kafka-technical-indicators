@@ -64,6 +64,8 @@ class ConfigService(metaclass=SingletonMeta):
     @classmethod
     def init_config_from_kafka(cls):
 
+        (KafkaService()).wait_topic_exists(cls.get_config_topic_name())
+
         consumer = KafkaConsumer(
             cls.get_config_topic_name(),
             bootstrap_servers=[(KafkaService()).get_bootstrap()],
