@@ -1,5 +1,6 @@
 import json
 import os
+from time import sleep
 
 from kafka import KafkaConsumer
 from tinkoff.invest import SubscriptionInterval
@@ -34,7 +35,20 @@ class ConfigService(metaclass=SingletonMeta):
         if cls.get_config_topic_name() is None:
             raise RuntimeError("TOPIC_CONFIG not find")
 
-        cls.init_config_from_kafka()
+        need_reinit = False
+
+        while not need_reinit:
+
+            print("Wait init configuration")
+
+            cls.init_config_from_kafka()
+
+            if cls.__instrument_key in cls.__configs:
+                need_reinit = True
+
+            if not need_reinit:
+                sleep(5)
+
 
     @classmethod
     def get_config_topic_name(cls):
@@ -66,6 +80,10 @@ class ConfigService(metaclass=SingletonMeta):
 
     @classmethod
     def get_instruments(cls) -> dict[str, str]:
+
+        if cls.__instrument_key not in cls.__configs:
+            raise RuntimeError(f'Key "{cls.__instrument_key}" not found or empty ')
+
         return cls.__configs[cls.__instrument_key]
 
     @classmethod
