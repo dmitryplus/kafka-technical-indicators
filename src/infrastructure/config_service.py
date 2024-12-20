@@ -24,6 +24,7 @@ class ConfigService(metaclass=SingletonMeta):
     __config_topic_15_name: str = 'candles-15-min'
     __config_topic_30_name: str = 'candles-30-min'
     __config_topic_1_hour_name: str = 'candles-1-hour'
+    __config_topic_4_hour_name: str = 'candles-4-hour'
     __config_topic_day_name: str = 'candles-1-day'
 
     @classmethod

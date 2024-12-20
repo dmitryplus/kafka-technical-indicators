@@ -49,6 +49,8 @@ def get_period_by_interval(interval: int) -> int | RuntimeError:
     match interval:
         case SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_DAY:
             return 60 * 24
+        case SubscriptionInterval.SUBSCRIPTION_INTERVAL_4_HOUR:
+            return 60 * 4
         case SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_HOUR:
             return 60
         case SubscriptionInterval.SUBSCRIPTION_INTERVAL_30_MIN:
