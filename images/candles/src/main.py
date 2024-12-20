@@ -7,9 +7,9 @@ from tinkoff.invest import AsyncClient, CandleInstrument, SubscriptionInterval, 
     SubscribeCandlesRequest, SubscriptionAction
 
 from infrastructure.kafka_service import KafkaService
-from src.infrastructure.config_service import ConfigService
-from src.infrastructure.candle_helper import candle_converter
-from src.infrastructure.time_helper import get_time_key_for_period
+from infrastructure.config_service import ConfigService
+from infrastructure.candle_helper import candle_converter
+from infrastructure.time_helper import get_time_key_for_period, get_period_by_interval
 
 logging.basicConfig(level=logging.ERROR)
 
@@ -31,23 +31,6 @@ def get_instruments_for_market_request(figies: list[str] = None) -> list[CandleI
         results.append(CandleInstrument(figi=figi, interval=interval, ))
 
     return results
-
-def get_period_by_interval(interval: int) -> int | RuntimeError:
-    match interval:
-        case SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_DAY:
-            return 60 * 24
-        case SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_HOUR:
-            return 60
-        case SubscriptionInterval.SUBSCRIPTION_INTERVAL_30_MIN:
-            return 30
-        case SubscriptionInterval.SUBSCRIPTION_INTERVAL_FIFTEEN_MINUTES:
-            return 15
-        case SubscriptionInterval.SUBSCRIPTION_INTERVAL_FIVE_MINUTES:
-            return 5
-        case SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE:
-            return 1
-        case _:
-            raise RuntimeError("Interval not in range")
 
 
 is_candles_received = False
@@ -74,7 +57,7 @@ async def main():
 
         yield MarketDataRequest(
             subscribe_candles_request=SubscribeCandlesRequest(
-                waiting_close=True,
+                waiting_close=False,
                 subscription_action=SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE,
                 instruments=get_instruments_for_market_request(codes),
             )

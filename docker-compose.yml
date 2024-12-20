@@ -88,10 +88,10 @@ services:
     network_mode: host
 
 
-  candle1:
-    container_name: candle-minute
+  candle-1-min:
+    container_name: candle-1-min
     build:
-      context: images/get_candles
+      context: images/candles
       dockerfile: ./Dockerfile
     env_file:
       - .env
