@@ -1,5 +1,4 @@
 import asyncio
-import json
 import logging
 import os
 
@@ -48,6 +47,11 @@ async def main():
     figies = (ConfigService()).get_instruments()
     figie_codes = list(figies.values())
 
+    kafka_service = KafkaService()
+    topic = (ConfigService()).get_candle_topic_name(interval)
+
+    kafka_service.wait_topic_exists(topic)
+
     async def request_iterator(codes: list[str] = None):
 
         global is_candles_received
@@ -75,13 +79,14 @@ async def main():
                 request_iterator(figie_codes)
         ):
             if marketdata.candle:
-                # для уведа что свеча пришла
 
-                candler = candle_converter(marketdata.candle)
+                candle = candle_converter(marketdata.candle)
 
-                candler['time'] = get_time_key_for_period(marketdata.candle.time, get_period_by_interval(interval))
+                candle['time'] = get_time_key_for_period(marketdata.candle.time, get_period_by_interval(interval))
 
-                print(candler)
+                print(candle)
+
+                kafka_service.send(topic, marketdata.candle.figi, candle)
 
                 is_candles_received = True
 
