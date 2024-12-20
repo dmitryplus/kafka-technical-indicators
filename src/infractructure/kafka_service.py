@@ -71,7 +71,7 @@ class KafkaService(metaclass=SingletonMeta):
             value_serializer=lambda v: json.dumps(v).encode('utf-8')
         )
 
-        producer.send(topic, key=key, value=json.dumps(value))
+        producer.send(topic, key=key, value=value)
         producer.close()
 
 
