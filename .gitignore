@@ -4,5 +4,4 @@
 /images/config/src/need_tickers.txt
 /images/config/src/not_need_tickers.txt
 /.run/
-/images/candles/src/infractructure/
-/images/config/src/infractructure/
+/images/config/src/infrastructure/

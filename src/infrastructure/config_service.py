@@ -12,7 +12,7 @@ class ConfigService(metaclass=SingletonMeta):
     Класс для работы с конфигурацией
     '''
 
-    __configs: dict[str, str | dict] = None
+    __configs: dict[str, str | dict] = {}
 
     __config_topic_name: str = None
     __instrument_key: str = 'instruments'
@@ -41,11 +41,9 @@ class ConfigService(metaclass=SingletonMeta):
     @classmethod
     def init_config_from_kafka(cls):
 
-        kafka_service = KafkaService()
-
         consumer = KafkaConsumer(
-            kafka_service.get_config_topic_name(),
-            bootstrap_servers=[kafka_service.get_bootstrap()],
+            cls.get_config_topic_name(),
+            bootstrap_servers=[(KafkaService()).get_bootstrap()],
             auto_offset_reset='earliest',
             enable_auto_commit=False,
             key_deserializer=lambda m: m.decode('utf-8'),
@@ -55,5 +53,3 @@ class ConfigService(metaclass=SingletonMeta):
 
         for message in consumer:
             cls.__configs[message.key] = message.value
-
-
