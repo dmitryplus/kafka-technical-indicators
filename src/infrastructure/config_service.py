@@ -17,21 +17,20 @@ class ConfigService(metaclass=SingletonMeta):
 
     __configs: dict[str, str | dict] = {}
 
-    __config_topic_name: str = None
-    __instrument_key: str = 'instruments'
+    INSTRUMENT_KEY: str = 'instruments'
+    CONFIG_TOPIC_NAME: str = os.environ.get('TOPIC_CONFIG', None)
 
-    __config_topic_1_name: str = 'candles-1-min'
-    __config_topic_5_name: str = 'candles-5-min'
-    __config_topic_15_name: str = 'candles-15-min'
-    __config_topic_30_name: str = 'candles-30-min'
-    __config_topic_1_hour_name: str = 'candles-1-hour'
-    __config_topic_4_hour_name: str = 'candles-4-hour'
-    __config_topic_day_name: str = 'candles-1-day'
+    CONFIG_TOPIC_1_NAME: str = 'candles-1-min'
+    CONFIG_TOPIC_5_NAME: str = 'candles-5-min'
+    CONFIG_TOPIC_15_NAME: str = 'candles-15-min'
+    CONFIG_TOPIC_30_NAME: str = 'candles-30-min'
+    CONFIG_TOPIC_1_HOUR_NAME: str = 'candles-1-hour'
+    CONFIG_TOPIC_4_HOUR_NAME: str = 'candles-4-hour'
+    CONFIG_TOPIC_DAY_NAME: str = 'candles-1-day'
 
     @classmethod
     def __init__(cls):
 
-        cls.__config_topic_name = os.environ.get('TOPIC_CONFIG', None)
         if cls.get_config_topic_name() is None:
             raise RuntimeError("TOPIC_CONFIG not find")
 
@@ -43,7 +42,7 @@ class ConfigService(metaclass=SingletonMeta):
 
             cls.init_config_from_kafka()
 
-            if cls.__instrument_key in cls.__configs:
+            if cls.INSTRUMENT_KEY in cls.__configs:
                 need_reinit = True
 
             if not need_reinit:
@@ -52,11 +51,11 @@ class ConfigService(metaclass=SingletonMeta):
 
     @classmethod
     def get_config_topic_name(cls):
-        return cls.__config_topic_name
+        return cls.CONFIG_TOPIC_NAME
 
     @classmethod
     def get_instrument_key(cls):
-        return cls.__instrument_key
+        return cls.INSTRUMENT_KEY
 
     @classmethod
     def get_config(cls):
@@ -81,25 +80,27 @@ class ConfigService(metaclass=SingletonMeta):
     @classmethod
     def get_instruments(cls) -> dict[str, str]:
 
-        if cls.__instrument_key not in cls.__configs:
-            raise RuntimeError(f'Key "{cls.__instrument_key}" not found or empty ')
+        if cls.INSTRUMENT_KEY not in cls.__configs:
+            raise RuntimeError(f'Key "{cls.INSTRUMENT_KEY}" not found or empty ')
 
-        return cls.__configs[cls.__instrument_key]
+        return cls.__configs[cls.INSTRUMENT_KEY]
 
     @classmethod
     def get_candle_topic_name(cls, interval: int) -> str | RuntimeError:
         match interval:
             case SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_DAY:
-                return cls.__config_topic_day_name
+                return cls.CONFIG_TOPIC_DAY_NAME
+            case SubscriptionInterval.SUBSCRIPTION_INTERVAL_4_HOUR:
+                return cls.CONFIG_TOPIC_4_HOUR_NAME
             case SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_HOUR:
-                return cls.__config_topic_1_hour_name
+                return cls.CONFIG_TOPIC_1_HOUR_NAME
             case SubscriptionInterval.SUBSCRIPTION_INTERVAL_30_MIN:
-                return cls.__config_topic_30_name
+                return cls.CONFIG_TOPIC_30_NAME
             case SubscriptionInterval.SUBSCRIPTION_INTERVAL_FIFTEEN_MINUTES:
-                return cls.__config_topic_15_name
+                return cls.CONFIG_TOPIC_15_NAME
             case SubscriptionInterval.SUBSCRIPTION_INTERVAL_FIVE_MINUTES:
-                return cls.__config_topic_5_name
+                return cls.CONFIG_TOPIC_5_NAME
             case SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE:
-                return cls.__config_topic_1_name
+                return cls.CONFIG_TOPIC_1_NAME
             case _:
                 raise RuntimeError("Interval not in range for topic name")

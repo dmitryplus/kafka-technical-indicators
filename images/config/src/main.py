@@ -22,11 +22,9 @@ def main():
 
         print(figi)
 
-        config_service = ConfigService()
-
         (KafkaService()).send(
-            config_service.get_config_topic_name(),
-            config_service.get_instrument_key(),
+            ConfigService.CONFIG_TOPIC_NAME,
+            ConfigService.INSTRUMENT_KEY,
             figi
         )
 
