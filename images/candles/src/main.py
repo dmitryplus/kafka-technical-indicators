@@ -61,7 +61,7 @@ async def main():
 
         yield MarketDataRequest(
             subscribe_candles_request=SubscribeCandlesRequest(
-                waiting_close=False,
+                waiting_close=True,
                 subscription_action=SubscriptionAction.SUBSCRIPTION_ACTION_SUBSCRIBE,
                 instruments=get_instruments_for_market_request(codes),
             )
