@@ -32,7 +32,7 @@ class KafkaService(metaclass=SingletonMeta):
                 kafka_admin = KafkaAdminClient(bootstrap_servers=cls.get_bootstrap())
 
                 if topic not in kafka_admin.list_topics():
-                    raise Exception('topic not fund')
+                    raise RuntimeError(f'Topic "{topic}" not found')
 
                 kafka_available = True
 
