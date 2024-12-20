@@ -2,6 +2,7 @@ import json
 import os
 
 from kafka import KafkaConsumer
+from tinkoff.invest import SubscriptionInterval
 
 from .kafka_service import KafkaService
 
@@ -17,6 +18,13 @@ class ConfigService(metaclass=SingletonMeta):
 
     __config_topic_name: str = None
     __instrument_key: str = 'instruments'
+
+    __config_topic_1_name: str = 'candles-1-min'
+    __config_topic_5_name: str = 'candles-5-min'
+    __config_topic_15_name: str = 'candles-15-min'
+    __config_topic_30_name: str = 'candles-30-min'
+    __config_topic_1_hour_name: str = 'candles-1-hour'
+    __config_topic_day_name: str = 'candles-1-day'
 
     @classmethod
     def __init__(cls):
@@ -58,3 +66,21 @@ class ConfigService(metaclass=SingletonMeta):
     @classmethod
     def get_instruments(cls) -> dict[str, str]:
         return cls.__configs[cls.__instrument_key]
+
+    @classmethod
+    def get_candle_topic_name(cls, interval: int) -> str | RuntimeError:
+        match interval:
+            case SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_DAY:
+                return cls.__config_topic_day_name
+            case SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_HOUR:
+                return cls.__config_topic_1_hour_name
+            case SubscriptionInterval.SUBSCRIPTION_INTERVAL_30_MIN:
+                return cls.__config_topic_30_name
+            case SubscriptionInterval.SUBSCRIPTION_INTERVAL_FIFTEEN_MINUTES:
+                return cls.__config_topic_15_name
+            case SubscriptionInterval.SUBSCRIPTION_INTERVAL_FIVE_MINUTES:
+                return cls.__config_topic_5_name
+            case SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE:
+                return cls.__config_topic_1_name
+            case _:
+                raise RuntimeError("Interval not in range for topic name")
