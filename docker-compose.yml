@@ -71,9 +71,8 @@ services:
 
   config-app:
     container_name: config-container
-    build:
-      context: images/config
-      dockerfile: ./Dockerfile
+    build: images/config
+    image: terminal_helper/config:latest
     env_file:
       - .env
     volumes:
@@ -96,9 +95,8 @@ services:
 
   candle-1-min:
     container_name: candle-1-min
-    build:
-      context: images/candles
-      dockerfile: ./Dockerfile
+    build: images/candles
+    image: terminal_helper/candles:latest
     env_file:
       - .env
     environment:
@@ -114,9 +112,8 @@ services:
 
   candle-5-min:
     container_name: candle-5-min
-    build:
-      context: images/candles
-      dockerfile: ./Dockerfile
+    build: images/candles
+    image: terminal_helper/candles:latest
     env_file:
       - .env
     environment:
@@ -132,9 +129,8 @@ services:
 
   candle-15-min:
     container_name: candle-15-min
-    build:
-      context: images/candles
-      dockerfile: ./Dockerfile
+    build: images/candles
+    image: terminal_helper/candles:latest
     env_file:
       - .env
     environment:
@@ -150,9 +146,8 @@ services:
 
   candle-30-min:
     container_name: candle-30-min
-    build:
-      context: images/candles
-      dockerfile: ./Dockerfile
+    build: images/candles
+    image: terminal_helper/candles:latest
     env_file:
       - .env
     environment:
@@ -168,9 +163,8 @@ services:
 
   candle-1-hour:
     container_name: candle-1-hour
-    build:
-      context: images/candles
-      dockerfile: ./Dockerfile
+    build: images/candles
+    image: terminal_helper/candles:latest
     env_file:
       - .env
     environment:
@@ -186,9 +180,8 @@ services:
 
   candle-4-hour:
     container_name: candle-4-hour
-    build:
-      context: images/candles
-      dockerfile: ./Dockerfile
+    build: images/candles
+    image: terminal_helper/candles:latest
     env_file:
       - .env
     environment:
@@ -205,9 +198,8 @@ services:
 
   candle-1-day:
     container_name: candle-1-day
-    build:
-      context: images/candles
-      dockerfile: ./Dockerfile
+    build: images/candles
+    image: terminal_helper/candles:latest
     env_file:
       - .env
     environment:
