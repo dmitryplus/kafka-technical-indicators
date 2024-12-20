@@ -87,19 +87,21 @@ services:
     network_mode: host
 
 
-#  candle1:
-#    container_name: candle-minute
-#    build:
-#      context: images/get_candles
-#      dockerfile: ./Dockerfile
-#    extends:
-#      service: common-env-container
-#    environment:
-#      INTERVAL: "${INTERVAL_ONE_MIN}"
-#    volumes:
-#      - ./need_tickers.txt:/need_tickers.txt
-#      - ./not_need_tickers.txt:/not_need_tickers.txt
-#    depends_on:
-#      - "kafka1"
-#    network_mode: host
+  candle1:
+    container_name: candle-minute
+    build:
+      context: images/get_candles
+      dockerfile: ./Dockerfile
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_ONE_MIN}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - "kafka1"
+    network_mode: host
 
