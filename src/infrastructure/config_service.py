@@ -3,7 +3,7 @@ import os
 
 from kafka import KafkaConsumer
 
-from kafka_service import KafkaService
+from .kafka_service import KafkaService
 
 from .SingletonMeta import SingletonMeta
 
