@@ -4,7 +4,8 @@ import logging
 from tinkoff.invest import (Client)
 
 from instruments_helper import get_instruments
-from infractructure.kafka_service import KafkaService
+from infrastructure.kafka_service import KafkaService
+from infrastructure.config_service import ConfigService
 
 logging.basicConfig(level=logging.ERROR)
 
@@ -21,11 +22,11 @@ def main():
 
         print(figi)
 
-        kafka_service = KafkaService()
+        config_service = ConfigService()
 
-        kafka_service.send(
-            KafkaService.get_config_topic_name(),
-            KafkaService.get_instrument_key(),
+        (KafkaService()).send(
+            config_service.get_config_topic_name(),
+            config_service.get_instrument_key(),
             figi
         )
 
