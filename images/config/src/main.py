@@ -22,11 +22,7 @@ def main():
 
         print(figi)
 
-        (KafkaService()).send(
-            ConfigService.CONFIG_TOPIC_NAME,
-            ConfigService.INSTRUMENT_KEY,
-            figi
-        )
+        (KafkaService()).send(ConfigService.CONFIG_TOPIC_NAME, ConfigService.INSTRUMENT_KEY, figi)
 
 
 if __name__ == '__main__':
