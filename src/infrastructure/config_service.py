@@ -20,13 +20,21 @@ class ConfigService(metaclass=SingletonMeta):
     INSTRUMENT_KEY: str = 'instruments'
     CONFIG_TOPIC_NAME: str = os.environ.get('TOPIC_CONFIG', None)
 
-    CONFIG_TOPIC_1_NAME: str = 'candles-1-min'
-    CONFIG_TOPIC_5_NAME: str = 'candles-5-min'
-    CONFIG_TOPIC_15_NAME: str = 'candles-15-min'
-    CONFIG_TOPIC_30_NAME: str = 'candles-30-min'
-    CONFIG_TOPIC_1_HOUR_NAME: str = 'candles-1-hour'
-    CONFIG_TOPIC_4_HOUR_NAME: str = 'candles-4-hour'
-    CONFIG_TOPIC_DAY_NAME: str = 'candles-1-day'
+    TOPIC_1: str = '1-min'
+    TOPIC_5: str = '5-min'
+    TOPIC_15: str = '15-min'
+    TOPIC_30: str = '30-min'
+    TOPIC_1_HOUR: str = '1-hour'
+    TOPIC_4_HOUR: str = '4-hour'
+    TOPIC_DAY: str = '1-day'
+
+    CONFIG_TOPIC_1_NAME: str = f'candles-{TOPIC_1}'
+    CONFIG_TOPIC_5_NAME: str = f'candles-{TOPIC_5}'
+    CONFIG_TOPIC_15_NAME: str = f'candles-{TOPIC_15}'
+    CONFIG_TOPIC_30_NAME: str = f'candles-{TOPIC_30}'
+    CONFIG_TOPIC_1_HOUR_NAME: str = f'candles-{TOPIC_1_HOUR}'
+    CONFIG_TOPIC_4_HOUR_NAME: str = f'candles-{TOPIC_4_HOUR}'
+    CONFIG_TOPIC_DAY_NAME: str = f'candles-{TOPIC_DAY}'
 
     @classmethod
     def __init__(cls):
@@ -106,3 +114,26 @@ class ConfigService(metaclass=SingletonMeta):
                 return cls.CONFIG_TOPIC_1_NAME
             case _:
                 raise RuntimeError("Interval not in range for topic name")
+
+    @classmethod
+    def get_indicator_values_topic_name(cls, prefix: str, interval: int) -> str | RuntimeError:
+
+        match interval:
+            case SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_DAY:
+                interval_name = cls.TOPIC_DAY
+            case SubscriptionInterval.SUBSCRIPTION_INTERVAL_4_HOUR:
+                interval_name =  cls.TOPIC_4_HOUR
+            case SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_HOUR:
+                interval_name =  cls.TOPIC_1_HOUR
+            case SubscriptionInterval.SUBSCRIPTION_INTERVAL_30_MIN:
+                interval_name =  cls.TOPIC_30
+            case SubscriptionInterval.SUBSCRIPTION_INTERVAL_FIFTEEN_MINUTES:
+                interval_name =  cls.TOPIC_15
+            case SubscriptionInterval.SUBSCRIPTION_INTERVAL_FIVE_MINUTES:
+                interval_name =  cls.TOPIC_5
+            case SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE:
+                interval_name =  cls.TOPIC_1
+            case _:
+                raise RuntimeError("Interval not in range for topic name")
+
+        return f'{prefix}-values-{interval_name}'
