@@ -1,13 +1,13 @@
 import json
 import os
 import logging
-import time
 
 from infrastructure.kafka_service import KafkaService
 from infrastructure.config_service import ConfigService
 from kafka import KafkaConsumer
 
 from macd import Macd
+from params import Params
 
 logging.basicConfig(level=logging.ERROR)
 
@@ -29,21 +29,22 @@ def main():
     topic = (ConfigService()).get_candle_topic_name(interval)
     exit_topic = (ConfigService()).get_indicator_values_topic_name(exit_topic_prefix, interval)
 
+    group_id = f'{exit_topic_prefix}-group-{interval}'
+
     kafka_service.wait_topic_exists(topic)
 
-    consumer = KafkaConsumer(
+
+    consumer_history = KafkaConsumer(
         topic,
         bootstrap_servers=[(KafkaService()).get_bootstrap()],
+        group_id=group_id,
         auto_offset_reset='earliest',
         key_deserializer=lambda m: m.decode('utf-8'),
         value_deserializer=lambda m: json.loads(m.decode('utf-8')),
+        consumer_timeout_ms=10000
     )
 
-    stop_time = 0
-
-    for message in consumer:
-
-        start_time = time.time()
+    for message in consumer_history:
 
         if 'time' not in message.value:
             raise RuntimeError("Field 'time' not find in message")
@@ -56,19 +57,49 @@ def main():
 
         figies[message.key][message.value['time']] = message.value['close']
 
-        receive_time = float(f'{(start_time - stop_time):0.4f}')
+        print(message.key, message.value['time'])
 
-        '''если задержка больше 30 сек то это уже реалтайм и можно вычислять'''
-        if stop_time > 0 and receive_time > 30 and len(figies[message.key]) > 100:
+    consumer_history.close()
 
+    for figi in figies:
+        if len(figies[figi]) > Params().get_candles_count():
+            macd_last_value = Macd(figi, figies[figi]).get_last_value()
+            if len(macd_last_value) > 0:
+                kafka_service.send(exit_topic, figi, macd_last_value)
+
+
+    consumer = KafkaConsumer(
+        topic,
+        bootstrap_servers=[(KafkaService()).get_bootstrap()],
+        auto_offset_reset='earliest',
+        group_id=group_id,
+        key_deserializer=lambda m: m.decode('utf-8'),
+        value_deserializer=lambda m: json.loads(m.decode('utf-8')),
+    )
+
+    for message in consumer:
+
+        if 'time' not in message.value:
+            raise RuntimeError("Field 'time' not find in message")
+
+        if 'close' not in message.value:
+            raise RuntimeError("Field 'close' not find in message")
+
+        if message.key not in figies:
+            figies[message.key] = {}
+
+        figies[message.key][message.value['time']] = message.value['close']
+
+        if len(figies[message.key]) > Params().get_candles_count():
             macd_last_value = Macd(message.key, figies[message.key]).get_last_value()
 
             if len(macd_last_value) > 0:
                 kafka_service.send(exit_topic, message.key, macd_last_value)
 
-            print(message.key, message.value['time'], macd_last_value)
+        print(message.key, message.value['time'], macd_last_value)
 
-        stop_time = time.time()
+
+    consumer.close()
 
 
 if __name__ == '__main__':
