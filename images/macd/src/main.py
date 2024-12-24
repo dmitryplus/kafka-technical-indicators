@@ -59,7 +59,7 @@ def main():
         receive_time = float(f'{(start_time - stop_time):0.4f}')
 
         '''если задержка больше 30 сек то это уже реалтайм и можно вычислять'''
-        if stop_time > 0 and receive_time > 30:
+        if stop_time > 0 and receive_time > 30 and len(figies[message.key]) > 100:
 
             macd_last_value = Macd(message.key, figies[message.key]).get_last_value()
 

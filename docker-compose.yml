@@ -54,8 +54,20 @@ services:
       kafka-topics --create --topic "candles-4-hour" --partitions 10 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
       kafka-topics --create --topic "candles-1-day" --partitions 10 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
       echo "Create indicator values topics..." &&
-      kafka-topics --delete --topic "macd-values-1-min" --bootstrap-server ${KAFKA_CONNECT} &&
+      kafka-topics --delete --topic "macd-values-1-min" --if-exists --bootstrap-server ${KAFKA_CONNECT} &&
       kafka-topics --create --topic "macd-values-1-min" --partitions 10 --replication-factor 1 --bootstrap-server ${KAFKA_CONNECT} &&
+      kafka-topics --delete --topic "macd-values-5-min" --if-exists --bootstrap-server ${KAFKA_CONNECT} &&
+      kafka-topics --create --topic "macd-values-5-min" --partitions 10 --replication-factor 1 --bootstrap-server ${KAFKA_CONNECT} &&
+      kafka-topics --delete --topic "macd-values-15-min" --if-exists --bootstrap-server ${KAFKA_CONNECT} &&
+      kafka-topics --create --topic "macd-values-15-min" --partitions 10 --replication-factor 1 --bootstrap-server ${KAFKA_CONNECT} &&
+      kafka-topics --delete --topic "macd-values-30-min" --if-exists --bootstrap-server ${KAFKA_CONNECT} &&
+      kafka-topics --create --topic "macd-values-30-min" --partitions 10 --replication-factor 1 --bootstrap-server ${KAFKA_CONNECT} &&
+      kafka-topics --delete --topic "macd-values-1-hour" --if-exists --bootstrap-server ${KAFKA_CONNECT} &&
+      kafka-topics --create --topic "macd-values-1-hour" --partitions 10 --replication-factor 1 --bootstrap-server ${KAFKA_CONNECT} &&
+      kafka-topics --delete --topic "macd-values-4-hour" --if-exists --bootstrap-server ${KAFKA_CONNECT} &&
+      kafka-topics --create --topic "macd-values-4-hour" --partitions 10 --replication-factor 1 --bootstrap-server ${KAFKA_CONNECT} &&
+      kafka-topics --delete --topic "macd-values-1-day" --if-exists --bootstrap-server ${KAFKA_CONNECT} &&
+      kafka-topics --create --topic "macd-values-1-day" --partitions 10 --replication-factor 1 --bootstrap-server ${KAFKA_CONNECT} &&
       exit 0'
 
     network_mode: host
@@ -190,7 +202,7 @@ services:
     env_file:
       - .env
     environment:
-      INTERVAL: "${INTERVAL_ONE_HOUR}"
+      INTERVAL: "${INTERVAL_FOUR_HOUR}"
     volumes:
       - type: bind
         source: ./src/infrastructure
@@ -219,14 +231,120 @@ services:
     network_mode: host
 
 
-  indicator-macd:
-    container_name: macd-container
+  indicator-macd-1-min:
+    container_name: macd-value-container-1-min
     build: images/macd
     image: terminal_helper/macd:latest
     env_file:
       - .env
     environment:
       INTERVAL: "${INTERVAL_ONE_MIN}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+
+  indicator-macd-5-min:
+    container_name: macd-value-container-5-min
+    build: images/macd
+    image: terminal_helper/macd:latest
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_FIVE_MIN}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+
+  indicator-macd-15-min:
+    container_name: macd-value-container-15-min
+    build: images/macd
+    image: terminal_helper/macd:latest
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_FIFTEEN_MIN}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+
+
+  indicator-macd-30-min:
+    container_name: macd-value-container-30-min
+    build: images/macd
+    image: terminal_helper/macd:latest
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_30_MIN}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+
+
+  indicator-macd-1-hour:
+    container_name: macd-value-container-1-hour
+    build: images/macd
+    image: terminal_helper/macd:latest
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_ONE_HOUR}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+
+
+  indicator-macd-4-hour:
+    container_name: macd-value-container-4-hour
+    build: images/macd
+    image: terminal_helper/macd:latest
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_FOUR_HOUR}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+
+
+  indicator-macd-1-day:
+    container_name: macd-value-container-1-day
+    build: images/macd
+    image: terminal_helper/macd:latest
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_ONE_DAY}"
     volumes:
       - type: bind
         source: ./src/infrastructure
