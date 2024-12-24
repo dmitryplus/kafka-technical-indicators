@@ -3,7 +3,7 @@ import math
 import numpy as np
 import talib
 
-from minute_params import MinuteParams
+from params import MinuteParams
 
 
 class Macd(object):
@@ -22,7 +22,7 @@ class Macd(object):
     def set_values(self, figi: str, closes: dict):
 
         keys = sorted(closes.keys(), key=lambda x: x.lower())
-        keys = keys[-100:]
+        keys = keys[-(self.params.get_candles_count()):]
 
         self.last_time_key = keys[-1:][0]
 
@@ -32,9 +32,9 @@ class Macd(object):
 
         self.main_line, self.signal_line, self.histogram = talib.MACD(
             np.real(np.asarray(sort_closes)),
-            self.params.fast,
-            self.params.slow,
-            self.params.signal
+            self.params.get_fast(),
+            self.params.get_slow(),
+            self.params.get_signal()
         )
 
     def get_last_value(self) -> dict[str, float]:
