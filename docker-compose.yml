@@ -43,7 +43,9 @@ services:
       - kafka1
     command: bash -c 'echo "Waiting for Kafka to be ready..." &&
       cub kafka-ready -b ${KAFKA_CONNECT} 1 30 &&
+      echo "Create config topic..." &&
       kafka-topics --create --topic ${TOPIC_CONFIG} --partitions 1 --replication-factor 1 --config cleanup.policy=compact --config delete.retention.ms=10 --config min.cleanable.dirty.ratio=0.1 --config min.compaction.lag.ms=10 --config max.compaction.lag.ms=100 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
+      echo "Create candles topics..." &&
       kafka-topics --create --topic "candles-1-min" --partitions 10 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
       kafka-topics --create --topic "candles-5-min" --partitions 10 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
       kafka-topics --create --topic "candles-15-min" --partitions 10 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
@@ -51,6 +53,9 @@ services:
       kafka-topics --create --topic "candles-1-hour" --partitions 10 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
       kafka-topics --create --topic "candles-4-hour" --partitions 10 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
       kafka-topics --create --topic "candles-1-day" --partitions 10 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
+      echo "Create indicator values topics..." &&
+      kafka-topics --delete --topic "macd-values-1-min" --bootstrap-server ${KAFKA_CONNECT} &&
+      kafka-topics --create --topic "macd-values-1-min" --partitions 10 --replication-factor 1 --bootstrap-server ${KAFKA_CONNECT} &&
       exit 0'
 
     network_mode: host
@@ -220,6 +225,13 @@ services:
     image: terminal_helper/macd:latest
     env_file:
       - .env
-#    depends_on:
-#      - kafka1
+    environment:
+      INTERVAL: "${INTERVAL_ONE_MIN}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
     network_mode: host

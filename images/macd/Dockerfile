@@ -1,6 +1,6 @@
 FROM python:3.12-alpine
 
-RUN pip install --user kafka-python-ng
+RUN pip install --user kafka-python-ng tinkoff-investments
 
 
 ENV PYTHON_TA_LIB_VERSION "0.5"
