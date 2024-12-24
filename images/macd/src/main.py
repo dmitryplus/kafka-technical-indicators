@@ -12,6 +12,7 @@ from macd import Macd
 logging.basicConfig(level=logging.ERROR)
 
 interval = int(os.environ.get('INTERVAL', 0))
+exit_topic_prefix = os.environ.get('TOPIC_PREFIX_MACD', None)
 
 figies: dict[str, dict[str, float]] = {}
 
@@ -21,8 +22,12 @@ def main():
         print("INTERVAL not find")
         return
 
+    if exit_topic_prefix is None:
+        raise RuntimeError("MACD values topic name not find")
+
     kafka_service = KafkaService()
     topic = (ConfigService()).get_candle_topic_name(interval)
+    exit_topic = (ConfigService()).get_indicator_values_topic_name(exit_topic_prefix, interval)
 
     kafka_service.wait_topic_exists(topic)
 
@@ -49,7 +54,10 @@ def main():
 
         macd_last_value = Macd(message.key, figies[message.key]).get_last_value()
 
-        print(macd_last_value)
+        if len(macd_last_value) > 0:
+            kafka_service.send(exit_topic, message.key, macd_last_value)
+
+        print(message.key, message.value['time'], macd_last_value)
 
 
 if __name__ == '__main__':

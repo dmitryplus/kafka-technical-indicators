@@ -22,7 +22,7 @@ class Macd(object):
     def set_values(self, figi: str, closes: dict):
 
         keys = sorted(closes.keys(), key=lambda x: x.lower())
-        #keys = keys[-200:]
+        keys = keys[-200:]
 
         self.last_time_key = keys[-1:][0]
 
@@ -38,9 +38,6 @@ class Macd(object):
         )
 
     def get_last_value(self) -> dict[str, float]:
-
-        # if len(self.histogram) < 100:
-        #    return {}
 
         last_main_line = self.main_line[-1:][0]
         last_signal_line = self.signal_line[-1:][0]
