@@ -22,7 +22,7 @@ class Macd(object):
     def set_values(self, figi: str, closes: dict):
 
         keys = sorted(closes.keys(), key=lambda x: x.lower())
-        keys = keys[-200:]
+        keys = keys[-100:]
 
         self.last_time_key = keys[-1:][0]
 
