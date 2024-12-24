@@ -1,6 +1,6 @@
 import os
 
-class MinuteParams(object):
+class Params(object):
     __fast: int = int(os.environ.get("MACD_FAST", 12))
     __slow: int = int(os.environ.get("MACD_SLOW", 26))
     __signal: int = int(os.environ.get("MACD_SIGNAL", 9))

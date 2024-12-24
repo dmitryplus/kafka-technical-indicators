@@ -3,7 +3,7 @@ import math
 import numpy as np
 import talib
 
-from params import MinuteParams
+from params import Params
 
 
 class Macd(object):
@@ -16,7 +16,7 @@ class Macd(object):
     last_time_key: str = ""
 
     def __init__(self, figi: str, closes: dict):
-        self.params = MinuteParams()
+        self.params = Params()
         self.set_values(figi, closes)
 
     def set_values(self, figi: str, closes: dict):
