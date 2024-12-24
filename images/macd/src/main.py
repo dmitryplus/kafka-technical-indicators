@@ -4,7 +4,7 @@ import logging
 
 from infrastructure.kafka_service import KafkaService
 from infrastructure.config_service import ConfigService
-from kafka import KafkaConsumer
+from kafka import KafkaConsumer, TopicPartition
 
 from macd import Macd
 from params import Params
@@ -29,7 +29,7 @@ def main():
     topic = (ConfigService()).get_candle_topic_name(interval)
     exit_topic = (ConfigService()).get_indicator_values_topic_name(exit_topic_prefix, interval)
 
-    group_id = f'{exit_topic_prefix}-group-{interval}'
+    #group_id = f'{exit_topic_prefix}-group-{interval}'
 
     kafka_service.wait_topic_exists(topic)
 
@@ -37,11 +37,10 @@ def main():
     consumer_history = KafkaConsumer(
         topic,
         bootstrap_servers=[(KafkaService()).get_bootstrap()],
-        group_id=group_id,
         auto_offset_reset='earliest',
         key_deserializer=lambda m: m.decode('utf-8'),
         value_deserializer=lambda m: json.loads(m.decode('utf-8')),
-        consumer_timeout_ms=10000
+        consumer_timeout_ms=5000
     )
 
     for message in consumer_history:
@@ -57,7 +56,7 @@ def main():
 
         figies[message.key][message.value['time']] = message.value['close']
 
-        print(message.key, message.value['time'])
+        print(message.key, message.value['time'], message)
 
     consumer_history.close()
 
@@ -66,13 +65,13 @@ def main():
             macd_last_value = Macd(figi, figies[figi]).get_last_value()
             if len(macd_last_value) > 0:
                 kafka_service.send(exit_topic, figi, macd_last_value)
+            print(figi, macd_last_value)
 
 
     consumer = KafkaConsumer(
         topic,
         bootstrap_servers=[(KafkaService()).get_bootstrap()],
-        auto_offset_reset='earliest',
-        group_id=group_id,
+        auto_offset_reset='latest',
         key_deserializer=lambda m: m.decode('utf-8'),
         value_deserializer=lambda m: json.loads(m.decode('utf-8')),
     )
