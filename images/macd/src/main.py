@@ -1,31 +1,55 @@
+import json
 import os
 import logging
 from time import sleep
 
-# from tinkoff.invest import (Client)
-#
-# from instruments_helper import get_instruments
-# from infrastructure.kafka_service import KafkaService
-# from infrastructure.config_service import ConfigService
+from infrastructure.kafka_service import KafkaService
+from infrastructure.config_service import ConfigService
+from kafka import KafkaConsumer
+
+from macd import Macd
 
 logging.basicConfig(level=logging.ERROR)
 
+interval = int(os.environ.get('INTERVAL', 0))
+
+figies: dict[str, dict[str, float]] = {}
+
 
 def main():
+    if interval == 0:
+        print("INTERVAL not find")
+        return
 
-    while True:
-        sleep(10)
+    kafka_service = KafkaService()
+    topic = (ConfigService()).get_candle_topic_name(interval)
 
-    # if token is None:
-    #     print("TOKEN not find")
-    #     return
-    #
-    # with Client(token) as client:
-    #     figi = get_instruments(client)
-    #
-    #     print(figi)
-    #
-    #     (KafkaService()).send(ConfigService.CONFIG_TOPIC_NAME, ConfigService.INSTRUMENT_KEY, figi)
+    kafka_service.wait_topic_exists(topic)
+
+    consumer = KafkaConsumer(
+        topic,
+        bootstrap_servers=[(KafkaService()).get_bootstrap()],
+        auto_offset_reset='earliest',
+        key_deserializer=lambda m: m.decode('utf-8'),
+        value_deserializer=lambda m: json.loads(m.decode('utf-8')),
+    )
+
+    for message in consumer:
+
+        if 'time' not in message.value:
+            raise RuntimeError("Field 'time' not find in message")
+
+        if 'close' not in message.value:
+            raise RuntimeError("Field 'close' not find in message")
+
+        if message.key not in figies:
+            figies[message.key] = {}
+
+        figies[message.key][message.value['time']] = message.value['close']
+
+        macd_last_value = Macd(message.key, figies[message.key]).get_last_value()
+
+        print(macd_last_value)
 
 
 if __name__ == '__main__':
