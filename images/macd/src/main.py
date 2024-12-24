@@ -1,7 +1,7 @@
 import json
 import os
 import logging
-from time import sleep
+import time
 
 from infrastructure.kafka_service import KafkaService
 from infrastructure.config_service import ConfigService
@@ -39,7 +39,11 @@ def main():
         value_deserializer=lambda m: json.loads(m.decode('utf-8')),
     )
 
+    stop_time = 0
+
     for message in consumer:
+
+        start_time = time.time()
 
         if 'time' not in message.value:
             raise RuntimeError("Field 'time' not find in message")
@@ -52,12 +56,19 @@ def main():
 
         figies[message.key][message.value['time']] = message.value['close']
 
-        macd_last_value = Macd(message.key, figies[message.key]).get_last_value()
+        receive_time = float(f'{(start_time - stop_time):0.4f}')
 
-        if len(macd_last_value) > 0:
-            kafka_service.send(exit_topic, message.key, macd_last_value)
+        '''если задержка больше 30 сек то это уже реалтайм и можно вычислять'''
+        if stop_time > 0 and receive_time > 30:
 
-        print(message.key, message.value['time'], macd_last_value)
+            macd_last_value = Macd(message.key, figies[message.key]).get_last_value()
+
+            if len(macd_last_value) > 0:
+                kafka_service.send(exit_topic, message.key, macd_last_value)
+
+            print(message.key, message.value['time'], macd_last_value)
+
+        stop_time = time.time()
 
 
 if __name__ == '__main__':
