@@ -26,6 +26,8 @@ def main():
         raise RuntimeError("MACD values topic name not find")
 
     kafka_service = KafkaService()
+    topic = (ConfigService()).get_candle_topic_name(interval)
+    exit_topic = (ConfigService()).get_indicator_values_topic_name(exit_topic_prefix, interval)
 
     kafka_service.wait_topic_exists(topic)
 
