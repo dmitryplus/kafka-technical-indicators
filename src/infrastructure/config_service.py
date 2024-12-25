@@ -36,6 +36,14 @@ class ConfigService(metaclass=SingletonMeta):
     CONFIG_TOPIC_4_HOUR_NAME: str = f'candles-{TOPIC_4_HOUR}'
     CONFIG_TOPIC_DAY_NAME: str = f'candles-{TOPIC_DAY}'
 
+    GAPS_TOPIC_1_NAME: str = f'gaps-{TOPIC_1}'
+    GAPS_TOPIC_5_NAME: str = f'gaps-{TOPIC_5}'
+    GAPS_TOPIC_15_NAME: str = f'gaps-{TOPIC_15}'
+    GAPS_TOPIC_30_NAME: str = f'gaps-{TOPIC_30}'
+    GAPS_TOPIC_1_HOUR_NAME: str = f'gaps-{TOPIC_1_HOUR}'
+    GAPS_TOPIC_4_HOUR_NAME: str = f'gaps-{TOPIC_4_HOUR}'
+    GAPS_TOPIC_DAY_NAME: str = f'gaps-{TOPIC_DAY}'
+
     @classmethod
     def __init__(cls):
 
@@ -55,7 +63,6 @@ class ConfigService(metaclass=SingletonMeta):
 
             if not need_reinit:
                 sleep(5)
-
 
     @classmethod
     def get_config_topic_name(cls):
@@ -122,18 +129,38 @@ class ConfigService(metaclass=SingletonMeta):
             case SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_DAY:
                 interval_name = cls.TOPIC_DAY
             case SubscriptionInterval.SUBSCRIPTION_INTERVAL_4_HOUR:
-                interval_name =  cls.TOPIC_4_HOUR
+                interval_name = cls.TOPIC_4_HOUR
             case SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_HOUR:
-                interval_name =  cls.TOPIC_1_HOUR
+                interval_name = cls.TOPIC_1_HOUR
             case SubscriptionInterval.SUBSCRIPTION_INTERVAL_30_MIN:
-                interval_name =  cls.TOPIC_30
+                interval_name = cls.TOPIC_30
             case SubscriptionInterval.SUBSCRIPTION_INTERVAL_FIFTEEN_MINUTES:
-                interval_name =  cls.TOPIC_15
+                interval_name = cls.TOPIC_15
             case SubscriptionInterval.SUBSCRIPTION_INTERVAL_FIVE_MINUTES:
-                interval_name =  cls.TOPIC_5
+                interval_name = cls.TOPIC_5
             case SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE:
-                interval_name =  cls.TOPIC_1
+                interval_name = cls.TOPIC_1
             case _:
                 raise RuntimeError("Interval not in range for topic name")
 
         return f'{prefix}-values-{interval_name}'
+
+    @classmethod
+    def get_gaps_topic_name(cls, interval: int) -> str | RuntimeError:
+        match interval:
+            case SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_DAY:
+                return cls.GAPS_TOPIC_DAY_NAME
+            case SubscriptionInterval.SUBSCRIPTION_INTERVAL_4_HOUR:
+                return cls.GAPS_TOPIC_4_HOUR_NAME
+            case SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_HOUR:
+                return cls.GAPS_TOPIC_1_HOUR_NAME
+            case SubscriptionInterval.SUBSCRIPTION_INTERVAL_30_MIN:
+                return cls.GAPS_TOPIC_30_NAME
+            case SubscriptionInterval.SUBSCRIPTION_INTERVAL_FIFTEEN_MINUTES:
+                return cls.GAPS_TOPIC_15_NAME
+            case SubscriptionInterval.SUBSCRIPTION_INTERVAL_FIVE_MINUTES:
+                return cls.GAPS_TOPIC_5_NAME
+            case SubscriptionInterval.SUBSCRIPTION_INTERVAL_ONE_MINUTE:
+                return cls.GAPS_TOPIC_1_NAME
+            case _:
+                raise RuntimeError("Interval not in range for gaps topic name")
