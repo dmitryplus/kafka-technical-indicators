@@ -290,7 +290,6 @@ services:
       - kafka1
     network_mode: host
 
-
   indicator-macd-30-min:
     container_name: macd-value-container-30-min
     build: images/macd
@@ -307,7 +306,6 @@ services:
     depends_on:
       - kafka1
     network_mode: host
-
 
   indicator-macd-1-hour:
     container_name: macd-value-container-1-hour
@@ -326,7 +324,6 @@ services:
       - kafka1
     network_mode: host
 
-
   indicator-macd-4-hour:
     container_name: macd-value-container-4-hour
     build: images/macd
@@ -343,7 +340,6 @@ services:
     depends_on:
       - kafka1
     network_mode: host
-
 
   indicator-macd-1-day:
     container_name: macd-value-container-1-day
@@ -362,6 +358,128 @@ services:
       - kafka1
     network_mode: host
 
+
+
+  gaps-1-min:
+    container_name: gaps-container-1-min
+    build: images/gaps
+    image: terminal_helper/gaps:latest
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_ONE_MIN}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+
+  gaps-5-min:
+    container_name: gaps-container-5-min
+    build: images/gaps
+    image: terminal_helper/gaps:latest
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_FIVE_MIN}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+
+  gaps-15-min:
+    container_name: gaps-container-15-min
+    build: images/gaps
+    image: terminal_helper/gaps:latest
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_FIFTEEN_MIN}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+
+  gaps-30-min:
+    container_name: gaps-container-30-min
+    build: images/gaps
+    image: terminal_helper/gaps:latest
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_30_MIN}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+
+  gaps-1-hour:
+    container_name: gaps-container-1-hour
+    build: images/gaps
+    image: terminal_helper/gaps:latest
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_ONE_HOUR}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+
+  gaps-4-hour:
+    container_name: gaps-container-4-hour
+    build: images/gaps
+    image: terminal_helper/gaps:latest
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_FOUR_HOUR}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+
+  gaps-1-day:
+    container_name: gaps-container-1-day
+    build: images/gaps
+    image: terminal_helper/gaps:latest
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_ONE_DAY}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+
+
   websocket-macd-1-min:
     container_name: websocket-macd-1-min
     build: images/websocket
@@ -378,3 +496,4 @@ services:
     depends_on:
       - kafka1
     network_mode: host
+
