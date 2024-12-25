@@ -1,9 +1,7 @@
 import json
 import os
 import logging
-import time
-from datetime import datetime, timedelta
-from logging import ERROR
+from time import sleep
 
 from infrastructure.kafka_service import KafkaService
 from infrastructure.config_service import ConfigService
@@ -15,8 +13,7 @@ from infrastructure.time_helper import time_from_key_to_utc
 logging.basicConfig(level=logging.ERROR)
 
 interval = int(os.environ.get('INTERVAL', 0))
-
-figies: dict[str, list[str]] = {}
+sleep_time = int(os.environ.get('SLEEP_TIME', 12))
 
 
 def get_period():
@@ -53,64 +50,66 @@ def main():
         print("INTERVAL not find")
         return
 
-    try:
+    kafka_service = KafkaService()
+    topic = (ConfigService()).get_candle_topic_name(interval)
+    exit_topic = (ConfigService()).get_gaps_topic_name(interval)
 
-        kafka_service = KafkaService()
-        topic = (ConfigService()).get_candle_topic_name(interval)
+    kafka_service.wait_topic_exists(topic)
 
-        kafka_service.wait_topic_exists(topic)
+    while True:
 
-        consumer = KafkaConsumer(
-            topic,
-            bootstrap_servers=[(KafkaService()).get_bootstrap()],
-            auto_offset_reset='earliest',
-            key_deserializer=lambda m: m.decode('utf-8'),
-            value_deserializer=lambda m: json.loads(m.decode('utf-8')),
-            consumer_timeout_ms=1000
-        )
+        figies: dict[str, list[str]] = {}
 
-        for message in consumer:
+        # читаем все данные из топика
+        try:
 
-            if 'time' not in message.value:
-                raise RuntimeError("Field 'time' not find in message")
+            consumer = KafkaConsumer(
+                topic,
+                bootstrap_servers=[(KafkaService()).get_bootstrap()],
+                auto_offset_reset='earliest',
+                key_deserializer=lambda m: m.decode('utf-8'),
+                value_deserializer=lambda m: json.loads(m.decode('utf-8')),
+                consumer_timeout_ms=1000
+            )
 
-            if message.key not in figies:
-                figies[message.key] = []
+            for message in consumer:
 
-            figies[message.key].append(message.value['time'])
+                if 'time' not in message.value:
+                    raise RuntimeError("Field 'time' not find in message")
 
-        consumer.close()
+                if message.key not in figies:
+                    figies[message.key] = []
 
-    except (KafkaError, RuntimeError):
-        pass
+                figies[message.key].append(message.value['time'])
 
-    print(figies)
+            consumer.close()
 
-    for figi in figies:
+        except (KafkaError, RuntimeError):
+            pass
 
-        time_list = sorted(figies[figi], key=lambda x: x.lower())
+        for figi in figies:
 
-        empty_gaps = []
+            time_list = sorted(figies[figi], key=lambda x: x.lower())
 
-        for i in range(len(time_list) - 1):
+            for i in range(len(time_list) - 1):
 
-            start_time_key = time_list[i]
-            stop_time_key = time_list[i + 1]
+                start_time_key = time_list[i]
+                stop_time_key = time_list[i + 1]
 
-            start_time = time_from_key_to_utc(start_time_key)
+                start_time = time_from_key_to_utc(start_time_key)
 
-            next_time = time_from_key_to_utc(stop_time_key)
+                next_time = time_from_key_to_utc(stop_time_key)
 
-            diff = next_time - start_time
+                diff = next_time - start_time
 
-            if int(diff.total_seconds()) != get_period():
-                empty_gaps.append({
-                    'start_key': start_time_key,
-                    'stop_key': stop_time_key,
-                })
+                if int(diff.total_seconds()) != get_period():
+                    message = {'start': start_time_key, 'stop': stop_time_key, }
 
+                    kafka_service.send(exit_topic, figi, message)
 
-        print(figi)
+                    print(figi, message)
+
+        sleep(sleep_time)
 
 
 if __name__ == '__main__':
