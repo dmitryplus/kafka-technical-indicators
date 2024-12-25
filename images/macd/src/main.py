@@ -1,7 +1,7 @@
 import json
 import os
 import logging
-
+import time
 from datetime import datetime, timedelta
 
 from infrastructure.kafka_service import KafkaService
@@ -55,6 +55,7 @@ def main():
 
     kafka_service.wait_topic_exists(topic)
 
+    #собираем данные из истории
     consumer_history = KafkaConsumer(
         topic,
         bootstrap_servers=[(KafkaService()).get_bootstrap()],
@@ -81,6 +82,7 @@ def main():
 
     consumer_history.close()
 
+    #вычисляем по последнем данным из истории
     for figi in figies:
         if len(figies[figi]) > Params().get_candles_count():
             macd_last_value = convert_macd_value(Macd(figi, figies[figi]).get_last_value())
@@ -88,6 +90,7 @@ def main():
                 kafka_service.send(exit_topic, figi, macd_last_value)
             print(figi, macd_last_value)
 
+    #дальше реалтайм поток
     consumer = KafkaConsumer(
         topic,
         bootstrap_servers=[(KafkaService()).get_bootstrap()],
@@ -96,7 +99,11 @@ def main():
         value_deserializer=lambda m: json.loads(m.decode('utf-8')),
     )
 
+    stop_time = 0
+
     for message in consumer:
+
+        start_time = time.time()
 
         if 'time' not in message.value:
             raise RuntimeError("Field 'time' not find in message")
@@ -109,13 +116,20 @@ def main():
 
         figies[message.key][message.value['time']] = message.value['close']
 
-        if len(figies[message.key]) > Params().get_candles_count():
-            macd_last_value = convert_macd_value(Macd(message.key, figies[message.key]).get_last_value())
+        receive_time = float(f'{(start_time - stop_time):0.4f}')
 
-            if len(macd_last_value) > 0:
-                kafka_service.send(exit_topic, message.key, macd_last_value)
+        '''если задержка больше 5 сек то это уже реалтайм и можно вычислять'''
+        if receive_time > 5 and len(figies[message.key]) > Params().get_candles_count():
 
-        print(message.key, macd_last_value)
+            if len(figies[message.key]) > Params().get_candles_count():
+                macd_last_value = convert_macd_value(Macd(message.key, figies[message.key]).get_last_value())
+
+                if len(macd_last_value) > 0:
+                    kafka_service.send(exit_topic, message.key, macd_last_value)
+
+                    print(message.key, macd_last_value)
+
+        stop_time = time.time()
 
     consumer.close()
 
