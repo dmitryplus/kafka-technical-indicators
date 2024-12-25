@@ -2,6 +2,8 @@ import json
 import os
 import logging
 
+from datetime import datetime, timedelta
+
 from infrastructure.kafka_service import KafkaService
 from infrastructure.config_service import ConfigService
 from kafka import KafkaConsumer
@@ -17,21 +19,26 @@ exit_topic_prefix = os.environ.get('TOPIC_PREFIX_MACD', None)
 figies: dict[str, dict[str, float]] = {}
 
 
-def convert_sending_arguments(
-        topic: str,
-        key: str,
+def convert_macd_value(
         value: dict[str: str, str: float, str: float, str: float]) \
-        -> dict[
-           str: str,
-           str: str,
-           str: dict[
-                str: str,
-                str: float,
-                str: float,
-                str: float
-                ]
-           ]:
-    return {'topic': topic, 'key': key, 'value': value}
+        -> dict[str: str, str: float, str: float, str: float]:
+    if len(value) == 0 or 'time' not in value:
+        return value
+
+    parse_time = datetime.strptime(value['time'], '%Y-%m-%d %H:%M')
+
+    result = datetime(
+        parse_time.year,
+        parse_time.month,
+        parse_time.day,
+        parse_time.hour,
+        parse_time.minute,
+        0,
+    ) + timedelta(minutes=+1)
+
+    value['time'] = f'{result:%Y-%m-%d %H:%M}'
+
+    return value
 
 
 def main():
@@ -76,9 +83,9 @@ def main():
 
     for figi in figies:
         if len(figies[figi]) > Params().get_candles_count():
-            macd_last_value = Macd(figi, figies[figi]).get_last_value()
+            macd_last_value = convert_macd_value(Macd(figi, figies[figi]).get_last_value())
             if len(macd_last_value) > 0:
-                kafka_service.send(**convert_sending_arguments(exit_topic, figi, macd_last_value))
+                kafka_service.send(exit_topic, figi, macd_last_value)
             print(figi, macd_last_value)
 
     consumer = KafkaConsumer(
@@ -103,10 +110,10 @@ def main():
         figies[message.key][message.value['time']] = message.value['close']
 
         if len(figies[message.key]) > Params().get_candles_count():
-            macd_last_value = Macd(message.key, figies[message.key]).get_last_value()
+            macd_last_value = convert_macd_value(Macd(message.key, figies[message.key]).get_last_value())
 
             if len(macd_last_value) > 0:
-                kafka_service.send(**convert_sending_arguments(exit_topic, message.key, macd_last_value))
+                kafka_service.send(exit_topic, message.key, macd_last_value)
 
         print(message.key, macd_last_value)
 
