@@ -37,7 +37,7 @@ class Macd(object):
             self.params.get_signal()
         )
 
-    def get_last_value(self) -> dict[str, float]:
+    def get_last_value(self) -> dict[str: str, str: float, str: float, str: float]:
 
         last_main_line = self.main_line[-1:][0]
         last_signal_line = self.signal_line[-1:][0]

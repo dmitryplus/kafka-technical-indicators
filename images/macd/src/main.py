@@ -17,6 +17,23 @@ exit_topic_prefix = os.environ.get('TOPIC_PREFIX_MACD', None)
 figies: dict[str, dict[str, float]] = {}
 
 
+def convert_sending_arguments(
+        topic: str,
+        key: str,
+        value: dict[str: str, str: float, str: float, str: float]) \
+        -> dict[
+           str: str,
+           str: str,
+           str: dict[
+                str: str,
+                str: float,
+                str: float,
+                str: float
+                ]
+           ]:
+    return {'topic': topic, 'key': key, 'value': value}
+
+
 def main():
     if interval == 0:
         print("INTERVAL not find")
@@ -30,7 +47,6 @@ def main():
     exit_topic = (ConfigService()).get_indicator_values_topic_name(exit_topic_prefix, interval)
 
     kafka_service.wait_topic_exists(topic)
-
 
     consumer_history = KafkaConsumer(
         topic,
@@ -62,9 +78,8 @@ def main():
         if len(figies[figi]) > Params().get_candles_count():
             macd_last_value = Macd(figi, figies[figi]).get_last_value()
             if len(macd_last_value) > 0:
-                kafka_service.send(exit_topic, figi, macd_last_value)
+                kafka_service.send(**convert_sending_arguments(exit_topic, figi, macd_last_value))
             print(figi, macd_last_value)
-
 
     consumer = KafkaConsumer(
         topic,
@@ -91,10 +106,9 @@ def main():
             macd_last_value = Macd(message.key, figies[message.key]).get_last_value()
 
             if len(macd_last_value) > 0:
-                kafka_service.send(exit_topic, message.key, macd_last_value)
+                kafka_service.send(**convert_sending_arguments(exit_topic, message.key, macd_last_value))
 
-        print(message.key, message.value['time'], macd_last_value)
-
+        print(message.key, macd_last_value)
 
     consumer.close()
 
