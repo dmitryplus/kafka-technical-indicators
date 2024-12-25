@@ -5,3 +5,4 @@
 /images/config/src/not_need_tickers.txt
 /.run/
 /images/macd/src/infrastructure
+/images/websocket/src/infrastructure/
