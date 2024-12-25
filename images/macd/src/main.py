@@ -4,7 +4,7 @@ import logging
 
 from infrastructure.kafka_service import KafkaService
 from infrastructure.config_service import ConfigService
-from kafka import KafkaConsumer, TopicPartition
+from kafka import KafkaConsumer
 
 from macd import Macd
 from params import Params
@@ -28,8 +28,6 @@ def main():
     kafka_service = KafkaService()
     topic = (ConfigService()).get_candle_topic_name(interval)
     exit_topic = (ConfigService()).get_indicator_values_topic_name(exit_topic_prefix, interval)
-
-    #group_id = f'{exit_topic_prefix}-group-{interval}'
 
     kafka_service.wait_topic_exists(topic)
 
