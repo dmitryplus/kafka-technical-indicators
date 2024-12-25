@@ -13,7 +13,7 @@ from infrastructure.config_service import ConfigService
 logging.basicConfig(level=logging.ERROR)
 
 interval = int(os.environ.get('INTERVAL', 0))
-sleep_time = int(os.environ.get('SLEEP_TIME', 12))
+sleep_time = int(os.environ.get('SLEEP_TIME', 180))
 
 
 def get_period():
@@ -56,6 +56,8 @@ def main():
 
     kafka_service.wait_topic_exists(topic)
 
+    group_id = f'gaps-group-consumer-{interval}'
+
     while True:
 
         figies: dict[str, list[str]] = {}
@@ -66,6 +68,7 @@ def main():
             consumer = KafkaConsumer(
                 topic,
                 bootstrap_servers=[(KafkaService()).get_bootstrap()],
+                group_id=group_id,
                 auto_offset_reset='earliest',
                 key_deserializer=lambda m: m.decode('utf-8'),
                 value_deserializer=lambda m: json.loads(m.decode('utf-8')),
