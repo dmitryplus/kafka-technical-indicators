@@ -6,3 +6,4 @@
 /.run/
 /images/macd/src/infrastructure
 /images/websocket/src/infrastructure/
+/images/gaps/src/infrastructure/
