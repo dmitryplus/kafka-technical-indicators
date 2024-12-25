@@ -3,12 +3,12 @@ import os
 import logging
 from time import sleep
 
-from infrastructure.kafka_service import KafkaService
-from infrastructure.config_service import ConfigService
 from kafka import KafkaConsumer
 from kafka.errors import KafkaError
 
 from infrastructure.time_helper import time_from_key_to_utc
+from infrastructure.kafka_service import KafkaService
+from infrastructure.config_service import ConfigService
 
 logging.basicConfig(level=logging.ERROR)
 
