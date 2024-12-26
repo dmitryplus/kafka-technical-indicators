@@ -56,19 +56,17 @@ def main():
     kafka_service = KafkaService()
     topic = (ConfigService()).get_gaps_topic_name(0)
 
-    group_id = f'history-consumer'
-
     kafka_service.wait_topic_exists(topic)
 
-    with Client(token) as client:
+    while True:
 
         try:
 
             consumer = KafkaConsumer(
                 topic,
                 bootstrap_servers=[(KafkaService()).get_bootstrap()],
-                group_id=group_id,
-                auto_offset_reset='earliest',
+                group_id='history-consumer',
+                auto_offset_reset='latest',
                 key_deserializer=lambda m: m.decode('utf-8'),
                 value_deserializer=lambda m: json.loads(m.decode('utf-8')),
             )
@@ -102,22 +100,24 @@ def main():
                     value_serializer=lambda v: json.dumps(v).encode('utf-8')
                 )
 
-                settings = MarketDataCacheSettings(base_cache_dir=Path('market_data_cache'))
-                market_data_cache = MarketDataCache(settings=settings, services=client)
-                for candle in market_data_cache.get_all_candles(
-                        figi=message.value['figi'],
-                        from_=time_from,
-                        to=time_to,
-                        interval=get_market_candle_interval(interval),
-                ):
-                    if candle.is_complete:
-                        current_candle = candle_converter(convert_history_to_candle(candle, message.value['figi']))
+                with Client(token) as client:
 
-                        current_candle['time'] = get_time_key_for_period(candle.time, get_period_by_interval(interval))
+                    settings = MarketDataCacheSettings(base_cache_dir=Path('market_data_cache'))
+                    market_data_cache = MarketDataCache(settings=settings, services=client)
+                    for candle in market_data_cache.get_all_candles(
+                            figi=message.value['figi'],
+                            from_=time_from,
+                            to=time_to,
+                            interval=get_market_candle_interval(interval),
+                    ):
+                        if candle.is_complete:
+                            current_candle = candle_converter(convert_history_to_candle(candle, message.value['figi']))
 
-                        producer.send(topic, key=current_candle['figi'], value=current_candle)
+                            current_candle['time'] = get_time_key_for_period(candle.time, get_period_by_interval(interval))
 
-                        print(current_candle)
+                            producer.send(topic, key=current_candle['figi'], value=current_candle)
+
+                            print(current_candle)
 
                 producer.close()
 

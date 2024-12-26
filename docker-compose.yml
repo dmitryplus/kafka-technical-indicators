@@ -233,6 +233,27 @@ services:
       - "kafka1"
     network_mode: host
 
+
+  history:
+    container_name: history-container
+    build: images/history
+    image: terminal_helper/history:latest
+    env_file:
+      - .env
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+      - type: bind
+        source: ./src/market_data_cache
+        target: /market_data_cache
+        read_only: false
+    depends_on:
+      - kafka1
+    network_mode: host
+
+
   lack:
     container_name: lack-container
     build: images/lack
