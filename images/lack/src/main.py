@@ -2,6 +2,7 @@ import json
 import os
 import logging
 from datetime import datetime, timedelta
+from time import sleep
 
 from kafka import KafkaConsumer
 from kafka.errors import KafkaError
@@ -140,3 +141,5 @@ def main():
 if __name__ == '__main__':
     for i in range(5):
         main()
+
+        sleep(30)
