@@ -5,8 +5,7 @@ from pathlib import Path
 
 from kafka import KafkaConsumer, KafkaProducer
 from kafka.errors import KafkaError
-from tinkoff.invest import (Client, AsyncClient, CandleInterval, Candle)
-from tinkoff.invest.utils import now
+from tinkoff.invest import (Client, CandleInterval)
 from tinkoff.invest.caching.market_data_cache.cache import MarketDataCache
 from tinkoff.invest.caching.market_data_cache.cache_settings import MarketDataCacheSettings
 
@@ -68,7 +67,7 @@ def main():
             consumer = KafkaConsumer(
                 topic,
                 bootstrap_servers=[(KafkaService()).get_bootstrap()],
-                #group_id=group_id,
+                group_id=group_id,
                 auto_offset_reset='earliest',
                 key_deserializer=lambda m: m.decode('utf-8'),
                 value_deserializer=lambda m: json.loads(m.decode('utf-8')),
