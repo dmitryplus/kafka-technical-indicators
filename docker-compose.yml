@@ -36,6 +36,21 @@ services:
     #      - "9092:9092"
     network_mode: host
 
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    container_name: kafdrop-terminal-helper
+    restart: "no"
+    #    ports:
+    #      - "9000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: "${KAFKA_CONNECT}"
+    depends_on:
+      - kafka1
+    network_mode: host
+
+
+
   kafka-init-topics:
     image: confluentinc/cp-kafka:7.0.9
     container_name: kafka-init-topics-terminal-helper
@@ -55,7 +70,7 @@ services:
       kafka-topics --create --topic "candles-1-day" --partitions 10 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
       echo "Create candle gaps topics..." &&
       kafka-topics --delete --topic "gaps" --if-exists --bootstrap-server ${KAFKA_CONNECT} &&
-      kafka-topics --create --topic "gaps" --partitions 5 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
+      kafka-topics --create --topic "gaps" --partitions 12 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
       echo "Create indicator values topics..." &&
       kafka-topics --delete --topic "macd-values-1-min" --if-exists --bootstrap-server ${KAFKA_CONNECT} &&
       kafka-topics --create --topic "macd-values-1-min" --partitions 10 --replication-factor 1 --bootstrap-server ${KAFKA_CONNECT} &&
@@ -74,19 +89,6 @@ services:
       exit 0'
 
     network_mode: host
-
-  kafdrop:
-    image: obsidiandynamics/kafdrop
-    container_name: kafdrop-terminal-helper
-    restart: "no"
-    #    ports:
-    #      - "9000:9000"
-    environment:
-      KAFKA_BROKERCONNECT: "${KAFKA_CONNECT}"
-    depends_on:
-      - kafka1
-    network_mode: host
-
 
 
   config-app:
@@ -215,7 +217,6 @@ services:
       - "kafka1"
     network_mode: host
 
-
   candle-1-day:
     container_name: candle-1-day
     build: images/candles
@@ -235,7 +236,10 @@ services:
 
 
   history:
-    container_name: history-container
+    #container_name: history-container
+    deploy:
+      mode: replicated
+      replicas: 4
     build: images/history
     image: terminal_helper/history:latest
     env_file:
