@@ -60,47 +60,47 @@ def main():
 
     while True:
 
-        try:
+        with Client(token) as client:
 
-            consumer = KafkaConsumer(
-                topic,
-                bootstrap_servers=[(KafkaService()).get_bootstrap()],
-                group_id='history-consumer',
-                auto_offset_reset='latest',
-                key_deserializer=lambda m: m.decode('utf-8'),
-                value_deserializer=lambda m: json.loads(m.decode('utf-8')),
-            )
+            try:
 
-            for message in consumer:
-
-                if 'start' not in message.value:
-                    raise RuntimeError("Field 'start' not find in message")
-
-                if 'stop' not in message.value:
-                    raise RuntimeError("Field 'stop' not find in message")
-
-                if 'figi' not in message.value:
-                    raise RuntimeError("Field 'figi' not find in message")
-
-                if 'interval' not in message.value:
-                    raise RuntimeError("Field 'interval' not find in message")
-
-                time_from = time_from_key_to_utc(message.value['start'])
-                time_to = time_from_key_to_utc(message.value['stop'])
-
-                interval = message.value['interval']
-
-                exit_topic = (ConfigService()).get_candle_topic_name(interval)
-
-                kafka_service.wait_topic_exists(exit_topic)
-
-                producer = KafkaProducer(
+                consumer = KafkaConsumer(
+                    topic,
                     bootstrap_servers=[(KafkaService()).get_bootstrap()],
-                    key_serializer=str.encode,
-                    value_serializer=lambda v: json.dumps(v).encode('utf-8')
+                    group_id='history-consumer',
+                    auto_offset_reset='earliest',
+                    key_deserializer=lambda m: m.decode('utf-8'),
+                    value_deserializer=lambda m: json.loads(m.decode('utf-8')),
                 )
 
-                with Client(token) as client:
+                for message in consumer:
+
+                    if 'start' not in message.value:
+                        raise RuntimeError("Field 'start' not find in message")
+
+                    if 'stop' not in message.value:
+                        raise RuntimeError("Field 'stop' not find in message")
+
+                    if 'figi' not in message.value:
+                        raise RuntimeError("Field 'figi' not find in message")
+
+                    if 'interval' not in message.value:
+                        raise RuntimeError("Field 'interval' not find in message")
+
+                    time_from = time_from_key_to_utc(message.value['start'])
+                    time_to = time_from_key_to_utc(message.value['stop'])
+
+                    interval = message.value['interval']
+
+                    exit_topic = (ConfigService()).get_candle_topic_name(interval)
+
+                    kafka_service.wait_topic_exists(exit_topic)
+
+                    producer = KafkaProducer(
+                        bootstrap_servers=[(KafkaService()).get_bootstrap()],
+                        key_serializer=str.encode,
+                        value_serializer=lambda v: json.dumps(v).encode('utf-8')
+                    )
 
                     settings = MarketDataCacheSettings(base_cache_dir=Path('market_data_cache'))
                     market_data_cache = MarketDataCache(settings=settings, services=client)
@@ -115,16 +115,16 @@ def main():
 
                             current_candle['time'] = get_time_key_for_period(candle.time, get_period_by_interval(interval))
 
-                            producer.send(topic, key=current_candle['figi'], value=current_candle)
+                            producer.send(exit_topic, key=current_candle['figi'], value=current_candle)
 
                             print(current_candle)
 
-                producer.close()
+                    producer.close()
 
-            consumer.close()
+                consumer.close()
 
-        except (KafkaError, RuntimeError):
-            pass
+            except (KafkaError, RuntimeError):
+                pass
 
 
 if __name__ == '__main__':
