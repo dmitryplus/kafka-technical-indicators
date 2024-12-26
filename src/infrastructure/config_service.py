@@ -3,6 +3,7 @@ import os
 from time import sleep
 
 from kafka import KafkaConsumer
+from kafka.errors import KafkaError
 from tinkoff.invest import SubscriptionInterval
 
 from .kafka_service import KafkaService
@@ -56,7 +57,10 @@ class ConfigService(metaclass=SingletonMeta):
 
             print("Wait init configuration")
 
-            cls.init_config_from_kafka()
+            try:
+                cls.init_config_from_kafka()
+            except (KafkaError, RuntimeError):
+                pass
 
             if cls.INSTRUMENT_KEY in cls.__configs:
                 need_reinit = True
