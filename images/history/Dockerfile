@@ -1,6 +1,6 @@
 FROM python:3.12-alpine
 
-RUN pip install --user tinkoff-investments kafka-python-ng
+RUN pip install --user tinkoff-investments kafka-python-ng pytz
 
 COPY ./src .
 

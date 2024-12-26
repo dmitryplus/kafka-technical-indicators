@@ -246,7 +246,7 @@ services:
         target: /infrastructure
         read_only: true
       - type: bind
-        source: ./src/market_data_cache
+        source: ./images/history/src/market_data_cache
         target: /market_data_cache
         read_only: false
     depends_on:
