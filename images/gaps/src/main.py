@@ -116,6 +116,18 @@ def main():
 
                 next_time = time_from_key_to_utc(stop_time_key)
 
+                if start_time_key == stop_time_key:
+                    continue
+
+                if '23:00' in start_time_key and '07:00' in stop_time_key:
+                    continue
+
+                if '23:45' in start_time_key and '07:00' in stop_time_key:
+                    continue
+
+                if '23:30' in start_time_key and '07:00' in stop_time_key:
+                    continue
+
                 diff = next_time - start_time
 
                 if int(diff.total_seconds()) != get_period():

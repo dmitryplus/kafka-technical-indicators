@@ -4,7 +4,7 @@ import logging
 from datetime import datetime, timedelta
 from time import sleep
 
-from kafka import KafkaConsumer
+from kafka import KafkaConsumer, KafkaProducer
 from kafka.errors import KafkaError
 
 from infrastructure.time_helper import get_period_by_interval
@@ -60,8 +60,9 @@ def main():
     kafka_service = KafkaService()
     exit_topic = (ConfigService()).get_gaps_topic_name(0)
 
-    instruments = (ConfigService()).get_instruments()
+    kafka_service.wait_topic_exists(exit_topic)
 
+    instruments = (ConfigService()).get_instruments()
 
     for interval in get_periods():
 
@@ -69,7 +70,6 @@ def main():
 
         for figi in list(instruments.values()):
             figies[figi] = []
-
 
         topic = (ConfigService()).get_candle_topic_name(interval)
         kafka_service.wait_topic_exists(topic)
@@ -98,13 +98,18 @@ def main():
         except (KafkaError, RuntimeError):
             pass
 
+        producer = KafkaProducer(
+            bootstrap_servers=kafka_service.get_bootstrap(),
+            key_serializer=str.encode,
+            value_serializer=lambda v: json.dumps(v).encode('utf-8')
+        )
+
         for figi in figies:
 
             if len(figies[figi]) >= get_need_candles_count(interval):
                 continue
 
             time_list = sorted(figies[figi], key=lambda x: x.lower())
-
 
             if len(time_list) > 0:
                 stop_time_key = time_list[:1][0]
@@ -133,13 +138,12 @@ def main():
                 'stop': stop_time_key,
             }
 
-            kafka_service.send(exit_topic, figi, message)
+            producer.send(exit_topic, key=figi, value=message)
 
             print(figi, message)
 
+        producer.close()
+
 
 if __name__ == '__main__':
-    for i in range(5):
-        main()
-
-        sleep(30)
+    main()

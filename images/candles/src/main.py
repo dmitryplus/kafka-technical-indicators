@@ -1,7 +1,9 @@
 import asyncio
+import json
 import logging
 import os
 
+from kafka import KafkaProducer
 from tinkoff.invest import AsyncClient, CandleInstrument, SubscriptionInterval, MarketDataRequest, \
     SubscribeCandlesRequest, SubscriptionAction
 
@@ -52,6 +54,12 @@ async def main():
 
     kafka_service.wait_topic_exists(topic)
 
+    producer = KafkaProducer(
+        bootstrap_servers=(KafkaService()).get_bootstrap(),
+        key_serializer=str.encode,
+        value_serializer=lambda v: json.dumps(v).encode('utf-8')
+    )
+
     async def request_iterator(codes: list[str] = None):
 
         global is_candles_received
@@ -86,10 +94,11 @@ async def main():
 
                 print(candle)
 
-                kafka_service.send(topic, marketdata.candle.figi, candle)
+                producer.send(topic, key=marketdata.candle.figi, value=candle)
 
                 is_candles_received = True
 
+    producer.close()
 
 if __name__ == '__main__':
     asyncio.run(main())
