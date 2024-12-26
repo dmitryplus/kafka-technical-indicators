@@ -58,9 +58,22 @@ def main():
 
     group_id = f'gaps-group-consumer-{interval}'
 
+    figies: dict[str, list[str]] = {}
+
     while True:
 
-        figies: dict[str, list[str]] = {}
+        last_figies = figies
+
+        figies = {}
+
+        # если цикл не первый - сохраняем последнее значение в качестве начала
+        for figi in last_figies:
+            if len(last_figies[figi]) != 0:
+
+                last_time = sorted(last_figies[figi], key=lambda x: x.lower())[-1]
+
+                figies[figi] = [last_time]
+
 
         # читаем все данные из топика
         try:
@@ -106,7 +119,12 @@ def main():
                 diff = next_time - start_time
 
                 if int(diff.total_seconds()) != get_period():
-                    message = {'start': start_time_key, 'stop': stop_time_key, }
+                    message = {
+                        'figi': figi,
+                        'interval': interval,
+                        'start': start_time_key,
+                        'stop': stop_time_key,
+                    }
 
                     kafka_service.send(exit_topic, figi, message)
 
