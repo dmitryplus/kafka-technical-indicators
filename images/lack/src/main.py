@@ -132,7 +132,7 @@ def main():
                 'stop': stop_time_key,
             }
 
-            #kafka_service.send(exit_topic, figi, message)
+            kafka_service.send(exit_topic, figi, message)
 
             print(figi, message)
 
