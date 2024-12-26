@@ -54,6 +54,7 @@ services:
       kafka-topics --create --topic "candles-4-hour" --partitions 10 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
       kafka-topics --create --topic "candles-1-day" --partitions 10 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
       echo "Create candle gaps topics..." &&
+      kafka-topics --delete --topic "gaps" --if-exists --bootstrap-server ${KAFKA_CONNECT} &&
       kafka-topics --create --topic "gaps" --partitions 5 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
       echo "Create indicator values topics..." &&
       kafka-topics --delete --topic "macd-values-1-min" --if-exists --bootstrap-server ${KAFKA_CONNECT} &&
@@ -230,6 +231,21 @@ services:
         read_only: true
     depends_on:
       - "kafka1"
+    network_mode: host
+
+  lack:
+    container_name: lack-container
+    build: images/lack
+    image: terminal_helper/lack:latest
+    env_file:
+      - .env
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
     network_mode: host
 
 
@@ -472,6 +488,7 @@ services:
     depends_on:
       - kafka1
     network_mode: host
+
 
 
   websocket-macd-1-min:
