@@ -54,13 +54,7 @@ services:
       kafka-topics --create --topic "candles-4-hour" --partitions 10 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
       kafka-topics --create --topic "candles-1-day" --partitions 10 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
       echo "Create candle gaps topics..." &&
-      kafka-topics --create --topic "gaps-1-min" --partitions 5 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
-      kafka-topics --create --topic "gaps-5-min" --partitions 5 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
-      kafka-topics --create --topic "gaps-15-min" --partitions 5 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
-      kafka-topics --create --topic "gaps-30-min" --partitions 5 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
-      kafka-topics --create --topic "gaps-1-hour" --partitions 5 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
-      kafka-topics --create --topic "gaps-4-hour" --partitions 5 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
-      kafka-topics --create --topic "gaps-1-day" --partitions 5 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
+      kafka-topics --create --topic "gaps" --partitions 5 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
       echo "Create indicator values topics..." &&
       kafka-topics --delete --topic "macd-values-1-min" --if-exists --bootstrap-server ${KAFKA_CONNECT} &&
       kafka-topics --create --topic "macd-values-1-min" --partitions 10 --replication-factor 1 --bootstrap-server ${KAFKA_CONNECT} &&
