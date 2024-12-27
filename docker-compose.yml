@@ -69,7 +69,6 @@ services:
       kafka-topics --create --topic "candles-4-hour" --partitions 10 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
       kafka-topics --create --topic "candles-1-day" --partitions 10 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
       echo "Create candle gaps topics..." &&
-      kafka-topics --delete --topic "gaps" --if-exists --bootstrap-server ${KAFKA_CONNECT} &&
       kafka-topics --create --topic "gaps" --partitions 12 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
       echo "Create candle history-action topics..." &&
       kafka-topics --delete --topic "history-action" --if-exists --bootstrap-server ${KAFKA_CONNECT} &&
