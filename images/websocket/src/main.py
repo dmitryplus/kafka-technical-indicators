@@ -11,11 +11,14 @@ logging.basicConfig(level=logging.ERROR)
 
 
 async def main():
-    topic = os.environ.get('TOPIC', None)
+    port = int(os.environ.get('PORT', '8001'))
+    topic = os.environ.get('TOPIC', 'macd-values-1-min')
 
     if topic is None:
         print("TOPIC name not find")
         return
+
+    figi = os.environ.get('FIGI', 'BBG004730N88')
 
     kafka_service = KafkaService()
     kafka_service.wait_topic_exists(topic)
@@ -26,19 +29,22 @@ async def main():
                 consumer = KafkaConsumer(
                     topic,
                     bootstrap_servers=[(KafkaService()).get_bootstrap()],
-                    auto_offset_reset='latest',
+                    group_id=f'websocket-group-{topic}-{figi}',
+                    auto_offset_reset='earliest',
                     key_deserializer=lambda m: m.decode('utf-8'),
                     value_deserializer=lambda m: m.decode('utf-8'),
                 )
 
                 for message in consumer:
-                    await websocket.send(message.value)
+                    if message.key == figi:
+                        print(message.key, message.value)
+                        await websocket.send(message.value)
 
             except Exception as e:
                 print(e)
                 break
 
-    async with websockets.serve(handler, "localhost", 8001):
+    async with websockets.serve(handler, "localhost", port):
         await asyncio.Future()
 
 
