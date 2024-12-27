@@ -22,22 +22,6 @@ figies: dict[str, dict[str, float]] = {}
 def convert_macd_value(
         value: dict[str: str, str: float, str: float, str: float]) \
         -> dict[str: str, str: float, str: float, str: float]:
-    if len(value) == 0 or 'time' not in value:
-        return value
-
-    parse_time = datetime.strptime(value['time'], '%Y-%m-%d %H:%M')
-
-    result = datetime(
-        parse_time.year,
-        parse_time.month,
-        parse_time.day,
-        parse_time.hour,
-        parse_time.minute,
-        0,
-    ) + timedelta(minutes=+1)
-
-    value['time'] = f'{result:%Y-%m-%d %H:%M}'
-
     return value
 
 
