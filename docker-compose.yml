@@ -518,7 +518,25 @@ services:
 
 
 
-  websocket-macd-1-min:
+  websocket-macd-1-min-SBER:
+    build: images/websocket
+    image: terminal_helper/websocket:latest
+    env_file:
+      - .env
+    environment:
+      TOPIC: "macd-values-1-min"
+      FIGI: "BBG004730N88"
+      PORT: "8001"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+
+  websocket-macd-1-min-YDEX:
     container_name: websocket-macd-1-min
     build: images/websocket
     image: terminal_helper/websocket:latest
@@ -526,6 +544,8 @@ services:
       - .env
     environment:
       TOPIC: "macd-values-1-min"
+      FIGI: "TCS00A107T19"
+      PORT: "8002"
     volumes:
       - type: bind
         source: ./src/infrastructure

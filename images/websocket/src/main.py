@@ -29,7 +29,7 @@ async def main():
                 consumer = KafkaConsumer(
                     topic,
                     bootstrap_servers=[(KafkaService()).get_bootstrap()],
-                    group_id=f'websocket-group-{topic}-{figi}',
+                    group_id=f'websocket-group-{figi}',
                     auto_offset_reset='earliest',
                     key_deserializer=lambda m: m.decode('utf-8'),
                     value_deserializer=lambda m: m.decode('utf-8'),
