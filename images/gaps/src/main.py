@@ -3,7 +3,7 @@ import os
 import logging
 from time import sleep
 
-from kafka import KafkaConsumer
+from kafka import KafkaConsumer, KafkaProducer
 from kafka.errors import KafkaError
 
 from infrastructure.time_helper import time_from_key_to_utc
@@ -69,11 +69,9 @@ def main():
         # если цикл не первый - сохраняем последнее значение в качестве начала
         for figi in last_figies:
             if len(last_figies[figi]) != 0:
-
                 last_time = sorted(last_figies[figi], key=lambda x: x.lower())[-1]
 
                 figies[figi] = [last_time]
-
 
         # читаем все данные из топика
         try:
@@ -107,6 +105,12 @@ def main():
 
             time_list = sorted(figies[figi], key=lambda x: x.lower())
 
+            producer = KafkaProducer(
+                bootstrap_servers=kafka_service.get_bootstrap(),
+                key_serializer=str.encode,
+                value_serializer=lambda v: json.dumps(v).encode('utf-8'),
+            )
+
             for i in range(len(time_list) - 1):
 
                 start_time_key = time_list[i]
@@ -138,9 +142,13 @@ def main():
                         'stop': stop_time_key,
                     }
 
-                    kafka_service.send(exit_topic, figi, message)
+                    key = f'{figi}#{interval}#{start_time_key}#{stop_time_key}'
+
+                    producer.send(exit_topic, key=key, value=message)
 
                     print(figi, message)
+
+            producer.close()
 
         sleep(sleep_time)
 

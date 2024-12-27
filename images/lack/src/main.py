@@ -58,7 +58,7 @@ def get_need_candles_count(interval: int) -> int:
 
 def main():
     kafka_service = KafkaService()
-    exit_topic = (ConfigService()).get_gaps_topic_name(0)
+    exit_topic = (ConfigService()).get_history_action_topic_name(0)
 
     kafka_service.wait_topic_exists(exit_topic)
 

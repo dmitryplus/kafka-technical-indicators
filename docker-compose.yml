@@ -71,6 +71,9 @@ services:
       echo "Create candle gaps topics..." &&
       kafka-topics --delete --topic "gaps" --if-exists --bootstrap-server ${KAFKA_CONNECT} &&
       kafka-topics --create --topic "gaps" --partitions 12 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
+      echo "Create candle history-action topics..." &&
+      kafka-topics --delete --topic "history-action" --if-exists --bootstrap-server ${KAFKA_CONNECT} &&
+      kafka-topics --create --topic "history-action" --partitions 12 --replication-factor 1 --if-not-exists --bootstrap-server ${KAFKA_CONNECT} &&
       echo "Create indicator values topics..." &&
       kafka-topics --delete --topic "macd-values-1-min" --if-exists --bootstrap-server ${KAFKA_CONNECT} &&
       kafka-topics --create --topic "macd-values-1-min" --partitions 10 --replication-factor 1 --bootstrap-server ${KAFKA_CONNECT} &&

@@ -54,7 +54,7 @@ def main():
         return
 
     kafka_service = KafkaService()
-    topic = (ConfigService()).get_gaps_topic_name(0)
+    topic = (ConfigService()).get_history_action_topic_name(0)
 
     kafka_service.wait_topic_exists(topic)
 

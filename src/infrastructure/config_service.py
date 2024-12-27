@@ -39,6 +39,8 @@ class ConfigService(metaclass=SingletonMeta):
 
     GAPS_TOPIC_NAME: str = f'gaps'
 
+    HISTORY_ACTION_TOPIC_NAME: str = f'history-action'
+
     @classmethod
     def __init__(cls):
 
@@ -146,3 +148,7 @@ class ConfigService(metaclass=SingletonMeta):
     @classmethod
     def get_gaps_topic_name(cls, interval: int) -> str | RuntimeError:
         return cls.GAPS_TOPIC_NAME
+
+    @classmethod
+    def get_history_action_topic_name(cls, interval: int) -> str | RuntimeError:
+        return cls.HISTORY_ACTION_TOPIC_NAME
