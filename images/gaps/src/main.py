@@ -73,7 +73,7 @@ def main():
 
                 figies[figi] = [last_time]
 
-        # читаем все данные из топика
+        # читаем данные из топика
         try:
 
             consumer = KafkaConsumer(
