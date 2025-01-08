@@ -11,8 +11,6 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
-    #    ports:
-    #      - "2181:2181"
     network_mode: host
 
   kafka1:
@@ -32,8 +30,6 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-    #    ports:
-    #      - "9092:9092"
     network_mode: host
 
 
@@ -41,8 +37,6 @@ services:
     image: obsidiandynamics/kafdrop
     container_name: kafdrop-terminal-helper
     restart: "no"
-    #    ports:
-    #      - "9000:9000"
     environment:
       KAFKA_BROKERCONNECT: "${KAFKA_CONNECT}"
     depends_on:
@@ -50,7 +44,7 @@ services:
     network_mode: host
 
 
-
+  #сервис для создания топиков
   kafka-init-topics:
     image: confluentinc/cp-kafka:7.0.9
     container_name: kafka-init-topics-terminal-helper
@@ -93,6 +87,7 @@ services:
     network_mode: host
 
 
+  #сервис конфигурации, управляет списком рабочих инструментов
   config-app:
     container_name: config-container
     build: images/config
@@ -116,6 +111,8 @@ services:
       - kafka1
     network_mode: host
 
+
+  #сервисы получения данных в реальном времени (по 1 на интервал)
 
   candle-1-min:
     container_name: candle-1-min
@@ -237,6 +234,7 @@ services:
     network_mode: host
 
 
+  #сервис работы с историей, запрашивает исторические свечи по параметрам из history-action
   history:
     #container_name: history-container
     deploy:
@@ -260,6 +258,7 @@ services:
     network_mode: host
 
 
+  #сервис отвечает за полноту данных, организует добор недостающих свечей до количества, указанного в переменной (по умолчанию - 200)
   lack:
     container_name: lack-container
     build: images/lack
@@ -276,126 +275,7 @@ services:
     network_mode: host
 
 
-  indicator-macd-1-min:
-    container_name: macd-value-container-1-min
-    build: images/macd
-    image: terminal_helper/macd:latest
-    env_file:
-      - .env
-    environment:
-      INTERVAL: "${INTERVAL_ONE_MIN}"
-    volumes:
-      - type: bind
-        source: ./src/infrastructure
-        target: /infrastructure
-        read_only: true
-    depends_on:
-      - kafka1
-    network_mode: host
-
-  indicator-macd-5-min:
-    container_name: macd-value-container-5-min
-    build: images/macd
-    image: terminal_helper/macd:latest
-    env_file:
-      - .env
-    environment:
-      INTERVAL: "${INTERVAL_FIVE_MIN}"
-    volumes:
-      - type: bind
-        source: ./src/infrastructure
-        target: /infrastructure
-        read_only: true
-    depends_on:
-      - kafka1
-    network_mode: host
-
-  indicator-macd-15-min:
-    container_name: macd-value-container-15-min
-    build: images/macd
-    image: terminal_helper/macd:latest
-    env_file:
-      - .env
-    environment:
-      INTERVAL: "${INTERVAL_FIFTEEN_MIN}"
-    volumes:
-      - type: bind
-        source: ./src/infrastructure
-        target: /infrastructure
-        read_only: true
-    depends_on:
-      - kafka1
-    network_mode: host
-
-  indicator-macd-30-min:
-    container_name: macd-value-container-30-min
-    build: images/macd
-    image: terminal_helper/macd:latest
-    env_file:
-      - .env
-    environment:
-      INTERVAL: "${INTERVAL_30_MIN}"
-    volumes:
-      - type: bind
-        source: ./src/infrastructure
-        target: /infrastructure
-        read_only: true
-    depends_on:
-      - kafka1
-    network_mode: host
-
-  indicator-macd-1-hour:
-    container_name: macd-value-container-1-hour
-    build: images/macd
-    image: terminal_helper/macd:latest
-    env_file:
-      - .env
-    environment:
-      INTERVAL: "${INTERVAL_ONE_HOUR}"
-    volumes:
-      - type: bind
-        source: ./src/infrastructure
-        target: /infrastructure
-        read_only: true
-    depends_on:
-      - kafka1
-    network_mode: host
-
-  indicator-macd-4-hour:
-    container_name: macd-value-container-4-hour
-    build: images/macd
-    image: terminal_helper/macd:latest
-    env_file:
-      - .env
-    environment:
-      INTERVAL: "${INTERVAL_FOUR_HOUR}"
-    volumes:
-      - type: bind
-        source: ./src/infrastructure
-        target: /infrastructure
-        read_only: true
-    depends_on:
-      - kafka1
-    network_mode: host
-
-  indicator-macd-1-day:
-    container_name: macd-value-container-1-day
-    build: images/macd
-    image: terminal_helper/macd:latest
-    env_file:
-      - .env
-    environment:
-      INTERVAL: "${INTERVAL_ONE_DAY}"
-    volumes:
-      - type: bind
-        source: ./src/infrastructure
-        target: /infrastructure
-        read_only: true
-    depends_on:
-      - kafka1
-    network_mode: host
-
-
+  #далее сервисы поиска пропусков в потоке данных (по 1 на интервал)
 
   gaps-1-min:
     container_name: gaps-container-1-min
@@ -517,6 +397,129 @@ services:
     network_mode: host
 
 
+  #сервисы расчета значений индикатора MACD (по 1 на интервал)
+
+  indicator-macd-1-min:
+    container_name: macd-value-container-1-min
+    build: images/macd
+    image: terminal_helper/macd:latest
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_ONE_MIN}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+
+  indicator-macd-5-min:
+    container_name: macd-value-container-5-min
+    build: images/macd
+    image: terminal_helper/macd:latest
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_FIVE_MIN}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+
+  indicator-macd-15-min:
+    container_name: macd-value-container-15-min
+    build: images/macd
+    image: terminal_helper/macd:latest
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_FIFTEEN_MIN}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+
+  indicator-macd-30-min:
+    container_name: macd-value-container-30-min
+    build: images/macd
+    image: terminal_helper/macd:latest
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_30_MIN}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+
+  indicator-macd-1-hour:
+    container_name: macd-value-container-1-hour
+    build: images/macd
+    image: terminal_helper/macd:latest
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_ONE_HOUR}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+
+  indicator-macd-4-hour:
+    container_name: macd-value-container-4-hour
+    build: images/macd
+    image: terminal_helper/macd:latest
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_FOUR_HOUR}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+
+  indicator-macd-1-day:
+    container_name: macd-value-container-1-day
+    build: images/macd
+    image: terminal_helper/macd:latest
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_ONE_DAY}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+
+
+  #далее вебсокеты для вывода значений MACD
 
   websocket-macd-1-min-SBER:
     build: images/websocket
