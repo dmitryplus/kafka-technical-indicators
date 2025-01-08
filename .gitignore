@@ -4,9 +4,10 @@
 /images/config/src/need_tickers.txt
 /images/config/src/not_need_tickers.txt
 /.run/
+__pycache__
 /images/macd/src/infrastructure
-/images/websocket/src/infrastructure/
-/images/gaps/src/infrastructure/
-/images/lack/src/infrastructure/
-/images/history/src/infrastructure/
-/images/history/src/market_data_cache/
+/images/websocket/src/infrastructure
+/images/gaps/src/infrastructure
+/images/lack/src/infrastructure
+/images/history/src/infrastructure
+/images/history/src/market_data_cache
