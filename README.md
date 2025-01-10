@@ -12,10 +12,10 @@
 * расчет показателей индикатора MACD по данным из kafka
 * вывод данных в вебсокет
 
-Для получения рыночных данных используется **API Т-Инвестиций**.
+Для получения рыночных данных используется [API Т-Инвестиций](https://tinkoff.github.io/investAPI/).
 
 
-Микросервисы написаны на **python** с использованием библиотек [tinkoff-investments](https://github.com/Tinkoff/invest-python), **kafka-python-ng**, **ta-lib**
+Микросервисы написаны на **python** с использованием библиотек [tinkoff-investments](https://github.com/Tinkoff/invest-python), [kafka-python-ng](https://kafka-python.readthedocs.io/en/master/index.html), ta-lib
 
 ## Структура проекта
 
