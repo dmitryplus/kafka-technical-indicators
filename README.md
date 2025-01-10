@@ -6,3 +6,12 @@
 ## Структура проекта
 
 ![structure.svg](structure.svg)
+
+
+## Запуск проекта
+
+Переименовываем файл `.env.template` в `.env`
+
+В поле `TOKEN` прописываем токен для доступа к API Т-Инвестиций (https://www.tbank.ru/profile/security/)
+
+Запускаем `docker-compose up -d`
