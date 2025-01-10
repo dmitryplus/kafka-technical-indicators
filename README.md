@@ -15,7 +15,7 @@
 Для получения рыночных данных используется **API Т-Инвестиций**.
 
 
-Микросервисы написаны на **python** с использованием библиотек **tinkoff-investments**, **kafka-python-ng**, **ta-lib**
+Микросервисы написаны на **python** с использованием библиотек [https://github.com/Tinkoff/invest-python](tinkoff-investments), **kafka-python-ng**, **ta-lib**
 
 ## Структура проекта
 
