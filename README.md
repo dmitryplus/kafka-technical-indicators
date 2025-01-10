@@ -152,3 +152,98 @@ Cервис работы с историческими данными из API �
       - kafka1
     network_mode: host
 ```
+
+
+### lack
+
+Сервис отвечает за полноту данных, организует добор недостающих свечей до количества, указанного в env переменной (по умолчанию - 200 для каждого интервала)
+
+Подсчитывает количество свечей в каждом интервале, если меньше необходимого значения для расчета индикатора, то отправляет задание `history` контейнеру в топик `history-action`.
+
+```YML
+  lack:
+    container_name: lack-container
+    build: images/lack
+    image: terminal_helper/lack:latest
+    env_file:
+      - .env
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+```
+
+
+### gaps-1-min
+
+Cервис поиска пропусков в потоке данных (по 1 на интервал). Ищет возможные сбои в потоке данных (`candles-1-min`) результат складывает в топик `gaps`
+
+```YML
+  gaps-1-min:
+    container_name: gaps-container-1-min
+    build: images/gaps
+    image: terminal_helper/gaps:latest
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_ONE_MIN}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+```
+
+### indicator-macd-1-min
+
+Cервис расчета значений индикатора MACD (по 1 на интервал). Слушает топик `candles-1-min`, расчитывает индикатор, результат складывает в топик `macd-values-1-min`.
+
+```YML
+  indicator-macd-1-min:
+    container_name: macd-value-container-1-min
+    build: images/macd
+    image: terminal_helper/macd:latest
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_ONE_MIN}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+```
+
+### websocket-macd-1-min-SBER
+
+Сервисы для трансляции данных из kafka, в данном случае вебсокеты. В настройках необходимо указать топик, инструмент и порт вывода.
+
+```YML
+  websocket-macd-1-min-SBER:
+    build: images/websocket
+    image: terminal_helper/websocket:latest
+    env_file:
+      - .env
+    environment:
+      TOPIC: "macd-values-1-min"
+      FIGI: "BBG004730N88"
+      PORT: "8001"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+```
