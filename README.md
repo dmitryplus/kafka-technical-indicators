@@ -66,3 +66,89 @@
 
     network_mode: host
 ```
+
+### config-app
+
+Сервис хранения настроек системы. Управляет списком инструментов по которым происходит забор данных.
+
+Файл `not_need_tickers.txt` содержит черный список инструментов. 
+Файл `need_tickers.txt` содержит список нужных инструментов, если он пустой - берутся данные по всем инструментам, кроме `not_need_tickers.txt`.
+
+```YML
+  config-app:
+    container_name: config-container
+    build: images/config
+    image: terminal_helper/config:latest
+    env_file:
+      - .env
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+      - type: bind
+        source: ./need_tickers.txt
+        target: /need_tickers.txt
+        read_only: true
+      - type: bind
+        source: ./not_need_tickers.txt
+        target: /not_need_tickers.txt
+        read_only: true
+    depends_on:
+      - kafka1
+    network_mode: host
+```
+
+### candle-1-min
+
+Cервисы получения данных в реальном времени (по 1 на интервал). Подключаются к API Т-Инвестиций в потоковом режиме, конвертируют полученные данные и складывают результат в соответсвующий топик (`candles-1-min`).
+
+```YML
+  candle-1-min:
+    container_name: candle-1-min
+    build: images/candles
+    image: terminal_helper/candles:latest
+    env_file:
+      - .env
+    environment:
+      INTERVAL: "${INTERVAL_ONE_MIN}"
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+    depends_on:
+      - "kafka1"
+    network_mode: host
+```
+
+### history
+
+Cервис работы с историческими данными из API Т-Инвестиций.
+
+Запускается в 4х экземплярах.
+
+Слушает топик `history-action`, получает данные по инструменту и временному интервалу. Запрашивает исторические данные рынка. Результат кладет в топики по соответствующему интервалу (`candle-1-min`).
+
+```YML
+  history:
+    deploy:
+      mode: replicated
+      replicas: 4
+    build: images/history
+    image: terminal_helper/history:latest
+    env_file:
+      - .env
+    volumes:
+      - type: bind
+        source: ./src/infrastructure
+        target: /infrastructure
+        read_only: true
+      - type: bind
+        source: ./images/history/src/market_data_cache
+        target: /market_data_cache
+        read_only: false
+    depends_on:
+      - kafka1
+    network_mode: host
+```
